@@ -23,12 +23,14 @@ func ListenAndServe() {
 func HandleClient(c net.Conn) {
 	defer c.Close()
 	var buff [512]byte
-	n, readErr := c.Read(buff[0:])
-	if readErr != nil {
-		// handle error
-	}
-	_, writeErr := c.Write(buff[0:n])
-	if writeErr != nil {
-		// handle error
+	for {
+		n, readErr := c.Read(buff[0:])
+		if readErr != nil {
+			// handle error
+		}
+		_, writeErr := c.Write(buff[0:n])
+		if writeErr != nil {
+			// handle error
+		}
 	}
 }
