@@ -1,28 +1,34 @@
 package server
 
 import (
-	"io"
-	"log"
 	"net"
 )
 
 func ListenAndServe() {
 	ln, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		log.Fatal(err)
+		// handle error
 	}
-	defer ln.Close()
+	
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Fatal(err)
+			// handle error
 		}
-		// conn.Write([]byte("HEllo world!"))
-		// io.Copy(conn, conn)
-		go func(c net.Conn) {
-			c.Write([]byte("HEllo world!"))
-			io.Copy(c, c)
-			c.Close()
-		}(conn)
+		go HandleClient(conn)
+
+	}
+}
+
+func HandleClient(c net.Conn) {
+	defer c.Close()
+	var buff [512]byte
+	n, readErr := c.Read(buff[0:])
+	if readErr != nil {
+		// handle error
+	}
+	_, writeErr := c.Write(buff[0:n])
+	if writeErr != nil {
+		// handle error
 	}
 }
