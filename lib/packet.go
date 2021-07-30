@@ -11,8 +11,10 @@ const (
     Connack = 2
 )
 
+
 const (
-    HeaderFlagMask = 0x0F
+    LSNibbleMask = 0x0F // 0000 1111
+    MSNibbleMask = 0XF0 // 1111 0000
 )
 
 type FixedHeader struct {
@@ -46,7 +48,7 @@ func GetControlPkt(r io.Reader) *ConnectPkt {
         return nil
     }
 
-    flags := buff[0] & HeaderFlagMask 
+    flags := buff[0] & LSNibbleMask 
     pktType := buff[0] >> 4
     rl, lenErr := GetRemLength(r)
     if lenErr != nil {
