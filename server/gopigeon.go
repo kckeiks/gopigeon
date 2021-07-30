@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"github.com/kckeiks/gopigeon/lib"
 )
 
 func ListenAndServe() {
@@ -24,17 +25,7 @@ func ListenAndServe() {
 func HandleClient(c net.Conn) {
 	defer c.Close()
 
-	var buff [512]byte
-	for {
-		n, readErr := c.Read(buff[0:])
-		if readErr != nil {
-			return
-		}
-		_, writeErr := c.Write(buff[0:n])
-		if writeErr != nil {
-			return
-		}
-	}
+	lib.GetControlPkt(c)
 }
 
 
