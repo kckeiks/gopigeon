@@ -1,7 +1,7 @@
 package lib
 
 type ConnectPkt struct {
-    fh FixedHeader
+    pktType byte 
     protocolName []byte
     protocolLevel byte
     userNameFlag byte
@@ -11,4 +11,8 @@ type ConnectPkt struct {
     willFlag byte
     cleanSession byte
     keepAlive []byte    
+}
+
+func (cp ConnectPkt) decode() {
+	
 }

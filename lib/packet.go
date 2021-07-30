@@ -4,6 +4,7 @@ import (
     "errors"
     "io"
     "fmt"
+    "encoding/hex"
 )
 
 const (
@@ -21,6 +22,10 @@ type FixedHeader struct {
     pktType byte
     flags byte
     remLength int
+}
+
+type ControlPkt interface {
+    decode()
 }
 
 func GetRemLength(r io.Reader) (int, error) {
@@ -41,8 +46,9 @@ func GetRemLength(r io.Reader) (int, error) {
     }
 }
 
-func GetControlPkt(r io.Reader) *ConnectPkt {
+func GetControlPkt(r io.Reader) ControlPkt {
     buff := make([]byte, 1)
+
     _, err := io.ReadFull(r, buff)
     if err != nil {
         return nil
@@ -50,23 +56,36 @@ func GetControlPkt(r io.Reader) *ConnectPkt {
 
     flags := buff[0] & LSNibbleMask 
     pktType := buff[0] >> 4
-    rl, lenErr := GetRemLength(r)
-    if lenErr != nil {
+
+    rl, rlerr := GetRemLength(r)
+    if rlerr != nil {
         return nil
     }
-    fh := FixedHeader{pktType: pktType, flags: flags, remLength: rl}
-	cp := newControlPkt(fh.pktType)
-    cp.fh = fh
+
+    // get the remaining bytes after fixed header
+    buff = make([]byte, rl)
+    _, err = io.ReadFull(r, buff)
+    if err != nil {
+        return nil
+    }
+
+    fmt.Println("%s", flags)
+    fmt.Println("%s", rl)
+    fmt.Println("%s", hex.Dump(buff))
+	cp := NewControlPkt(pktType, flags, buff)
     fmt.Printf("ConnectPkt: %+v\n", cp)
-	return nil
+    return cp
 }
 
-func newControlPkt(pktType byte) *ConnectPkt {
+func NewControlPkt(pktType byte, flags byte, rpacket []byte) ControlPkt {
+    // rpacket is the remaining packet without the fixed header
+    var cp ControlPkt
     switch pktType {
     case Connect:
-        return &ConnectPkt{}
+        cp =  ConnectPkt{pktType: pktType}
     default:
         return nil
     }
+    return cp
 }
 
