@@ -55,12 +55,18 @@ func GetControlPkt(r io.Reader) *ConnectPkt {
         return nil
     }
     fh := FixedHeader{pktType: pktType, flags: flags, remLength: rl}
-
-	if pktType == Connect {
-        cp := &ConnectPkt{fixedHeader: fh}
-        fmt.Printf("ConnectPkt: %+v\n", cp)
-		return cp
-    }
+	cp := newControlPkt(fh.pktType)
+    cp.fh = fh
+    fmt.Printf("ConnectPkt: %+v\n", cp)
 	return nil
+}
+
+func newControlPkt(pktType byte) *ConnectPkt {
+    switch pktType {
+    case Connect:
+        return &ConnectPkt{}
+    default:
+        return nil
+    }
 }
 

@@ -1,7 +1,7 @@
 package lib
 
 type ConnectPkt struct {
-    fixedHeader FixedHeader
+    fh FixedHeader
     protocolName []byte
     protocolLevel byte
     userNameFlag byte
