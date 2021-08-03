@@ -3,8 +3,8 @@ package lib
 import (
     "errors"
     "io"
-    "fmt"
-    "encoding/hex"
+    // "fmt"
+    // "encoding/hex"
 )
 
 const (
@@ -25,7 +25,7 @@ type FixedHeader struct {
 }
 
 type ControlPkt interface {
-    decode()
+    decode(flags byte, packet []byte) error
 }
 
 func GetRemLength(r io.Reader) (int, error) {
@@ -69,23 +69,20 @@ func GetControlPkt(r io.Reader) ControlPkt {
         return nil
     }
 
-    fmt.Println("%s", flags)
-    fmt.Println("%s", rl)
-    fmt.Println("%s", hex.Dump(buff))
-	cp := NewControlPkt(pktType, flags, buff)
-    fmt.Printf("ConnectPkt: %+v\n", cp)
-    return cp
-}
-
-func NewControlPkt(pktType byte, flags byte, rpacket []byte) ControlPkt {
-    // rpacket is the remaining packet without the fixed header
+    // fmt.Println("%s", flags)
+    // fmt.Println("%s", rl)
+    // fmt.Println("%s", hex.Dump(buff))
     var cp ControlPkt
     switch pktType {
     case Connect:
-        cp =  ConnectPkt{pktType: pktType}
+        cp =  &ConnectPkt{pktType: pktType}
     default:
+        return nil
+    }
+
+    err = cp.decode(flags, buff)
+    if err != nil {
         return nil
     }
     return cp
 }
-
