@@ -4,8 +4,8 @@ import (
     "bytes"
     "encoding/binary"
     "errors"
-    "io"
     "fmt"
+    "io"
 )
 
 const ProtocolName = "MQTT"
@@ -32,8 +32,7 @@ func (cp *ConnectPkt) Decode(r io.Reader) error {
     packet := make([]byte, rl)
     n, err := io.ReadFull(r, packet)
 
-    // TODO: Fix this int casting
-    if (n != int(rl) || err != nil) {
+    if (err != nil) {
         return errors.New("")
     }
 
@@ -59,8 +58,8 @@ func (cp *ConnectPkt) Decode(r io.Reader) error {
     if (!IsValidUTF8Encoded(protocol)) {
         return errors.New("")
     }
-    fmt.Printf("%s\n", protocol)
-    fmt.Println(IsValidUTF8Encoded(protocol))
+
+    fmt.Println("Decoded.")
     
     return nil
 }
