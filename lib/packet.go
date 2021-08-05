@@ -3,6 +3,8 @@ package lib
 import (
     "errors"
     "io"
+    "unicode/utf8"
+    "unicode"
     // "fmt"
     // "encoding/hex"
 )
@@ -46,6 +48,24 @@ func GetRemLength(r io.Reader) (int, error) {
     }
 }
 
+func IsValidUTF8Encoded(bytes []byte) bool {
+    if (!utf8.Valid(bytes)) {
+        return false
+    }
+
+    for len(bytes) > 0 {
+        r, size := utf8.DecodeRune(bytes)
+    
+        // check if it is a control character (including the null character) or if it is a non-character
+        if (unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Noncharacter_Code_Point, r)) {
+            return false
+        }
+        bytes = bytes[:len(bytes)-size]
+    }
+
+    return true
+}
+
 func GetControlPkt(r io.Reader) ControlPkt {
     buff := make([]byte, 1)
 
@@ -86,3 +106,4 @@ func GetControlPkt(r io.Reader) ControlPkt {
     }
     return cp
 }
+
