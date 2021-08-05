@@ -23,19 +23,41 @@ const (
 type FixedHeader struct {
     pktType byte
     flags byte
-    remLength int
+    remLength int // TODO: use uint64 or 32
 }
 
-type ControlPkt interface {
-    decode(flags byte, packet []byte) error
+
+type PacketDecoder interface {
+    Decode(r io.Reader) error
+}
+
+
+func GetFixedHeaderFields(r io.Reader) (pktType byte, flags byte, remLength int, err error) {
+    buff := make([]byte, 1)
+
+    _, err = io.ReadFull(r, buff)
+    if err != nil {
+        return 0, 0, 0, err
+    }
+
+    flags = buff[0] & LSNibbleMask 
+    pktType = buff[0] >> 4
+
+    remLength, err = GetRemLength(r)
+    if err != nil {
+        return 0, 0, 0, err
+    }
+
+    return pktType, flags, remLength, nil
 }
 
 func GetRemLength(r io.Reader) (int, error) {
     // http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Table_2.4_Size    
     mul := 1
-    val := 0
+    val := 0 // TODO: use uint64 or 32
     encodedByte := make([]byte, 1)
     for {
+        // TODO: add error handling here
         r.Read(encodedByte)
         val += int(encodedByte[0] & byte(127)) * mul
         mul *= 128
@@ -66,44 +88,24 @@ func IsValidUTF8Encoded(bytes []byte) bool {
     return true
 }
 
-func GetControlPkt(r io.Reader) ControlPkt {
-    buff := make([]byte, 1)
-
-    _, err := io.ReadFull(r, buff)
+func GetControlPkt(r io.Reader) PacketDecoder {
+    pktType, flags, remLength, err := GetFixedHeaderFields(r)
     if err != nil {
         return nil
     }
-
-    flags := buff[0] & LSNibbleMask 
-    pktType := buff[0] >> 4
-
-    rl, rlerr := GetRemLength(r)
-    if rlerr != nil {
-        return nil
-    }
-
-    // get the remaining bytes after fixed header
-    buff = make([]byte, rl)
-    _, err = io.ReadFull(r, buff)
-    if err != nil {
-        return nil
-    }
-
-    // fmt.Println("%s", flags)
-    // fmt.Println("%s", rl)
-    // fmt.Println("%s", hex.Dump(buff))
-    var cp ControlPkt
+    fh := &FixedHeader{pktType: pktType, flags: flags, remLength: remLength}
+    var pd PacketDecoder
     switch pktType {
     case Connect:
-        cp =  &ConnectPkt{pktType: pktType}
+        pd = &ConnectPkt{fh: fh}
     default:
         return nil
     }
 
-    err = cp.decode(flags, buff)
+    err = pd.Decode(r)
     if err != nil {
         return nil
     }
-    return cp
+    return pd
 }
 
