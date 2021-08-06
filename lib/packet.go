@@ -18,12 +18,13 @@ const (
     MSNibbleMask = 0XF0 // 1111 0000
 )
 
+const EncodedStrByteCount = 2
+
 type FixedHeader struct {
     pktType byte
     flags byte
     remLength uint32
 }
-
 
 type PacketDecoder interface {
     Decode(r io.Reader) error

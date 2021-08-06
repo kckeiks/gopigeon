@@ -8,7 +8,11 @@ import (
     "io"
 )
 
-const ProtocolName = "MQTT"
+const (   
+    ProtocolName = "MQTT"
+    ProtocolNameLength = 4
+    ProtocolLevel = 4
+)
 
 type ConnectPkt struct {
     fh *FixedHeader
@@ -30,28 +34,28 @@ func (cp *ConnectPkt) Decode(r io.Reader) error {
 
     rl := cp.fh.remLength
     packet := make([]byte, rl)
-    n, err := io.ReadFull(r, packet)
-
+    _, err := io.ReadFull(r, packet)
     if (err != nil) {
         return errors.New("")
     }
 
-	buff := bytes.NewBuffer(packet)
-    protocolNameLenBuff := make([]byte, 2)
+    // read all of the remaining bytes
+    buff := bytes.NewBuffer(packet)
 
-    n, err = buff.Read(protocolNameLenBuff)
-    if (n != 2 || err != nil) {
+    protocolNameLenBuff := make([]byte, EncodedStrByteCount)
+    _, err = io.ReadFull(buff, protocolNameLenBuff)
+    if (err != nil) {
         return errors.New("")
     }
 
     pnl := binary.BigEndian.Uint16(protocolNameLenBuff)
-    if (pnl != 4) {
+    if (pnl != ProtocolNameLength) {
         return errors.New("")
     }
 
     protocol := make([]byte, pnl)
-    n, err = buff.Read(protocol)
-    if (n != int(pnl) || err != nil) {
+    _, err = io.ReadFull(buff, protocol)
+    if (err != nil) {
         return errors.New("")
     }
 
@@ -59,7 +63,20 @@ func (cp *ConnectPkt) Decode(r io.Reader) error {
         return errors.New("")
     }
 
-    fmt.Println("Decoded.")
+    var protocolLevel byte
+    protocolLevel, err = buff.ReadByte()
+    if (err != nil || protocolLevel != ProtocolLevel) {
+        return errors.New("")
+    }
+
+    var connectFlags byte
+    connectFlags, err = buff.ReadByte()
+    if (err != nil) {
+        return errors.New("")
+    }
     
+    fmt.Printf("% 08b\n", connectFlags)
+    fmt.Println("Decoded.")
+
     return nil
 }
