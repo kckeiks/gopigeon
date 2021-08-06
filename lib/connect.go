@@ -3,6 +3,7 @@ package lib
 import (
     "bytes"
     "encoding/binary"
+    "encoding/hex"
     "errors"
     "fmt"
     "io"
@@ -12,6 +13,7 @@ const (
     ProtocolName = "MQTT"
     ProtocolNameLength = 4
     ProtocolLevel = 4
+    KeepAliveFieldLength = 2
 )
 
 type ConnectPkt struct {
@@ -74,7 +76,20 @@ func (cp *ConnectPkt) Decode(r io.Reader) error {
     if (err != nil) {
         return errors.New("")
     }
-    
+
+    keepAlive := make([]byte, KeepAliveFieldLength)
+    _, err = io.ReadFull(buff, keepAlive)
+    if (err != nil) {
+        return errors.New("")
+    }
+
+    payload := make([]byte, len(buff.Bytes()))
+    _, err = io.ReadFull(buff, payload)
+    if (err != nil) {
+        return errors.New("")
+    }
+
+    fmt.Println(hex.Dump(payload))
     fmt.Printf("% 08b\n", connectFlags)
     fmt.Println("Decoded.")
 
