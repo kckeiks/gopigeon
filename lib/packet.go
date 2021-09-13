@@ -31,23 +31,23 @@ type PacketDecoder interface {
 }
 
 
-func GetFixedHeaderFields(r io.Reader) (pktType byte, flags byte, remLength uint32, err error) {
+func GetFixedHeaderFields(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
 
-    _, err = io.ReadFull(r, buff)
+    _, err := io.ReadFull(r, buff)
     if err != nil {
-        return 0, 0, 0, err
+        return nil, err
     }
 
-    flags = buff[0] & LSNibbleMask 
-    pktType = buff[0] >> 4
+    flags := buff[0] & LSNibbleMask 
+    pktType := buff[0] >> 4
 
-    remLength, err = GetRemLength(r)
+    remLength, err := GetRemLength(r)
     if err != nil {
-        return 0, 0, 0, err
+        return nil, err
     }
 
-    return pktType, flags, remLength, nil
+    return &FixedHeader{pktType:pktType, flags:flags, remLength:remLength}, nil
 }
 
 func GetRemLength(r io.Reader) (uint32, error) {
@@ -93,15 +93,13 @@ func IsValidUTF8Encoded(bytes []byte) bool {
 }
 
 func GetControlPkt(r io.Reader) PacketDecoder {
-    pktType, flags, remLength, err := GetFixedHeaderFields(r)
+    fh, err := GetFixedHeaderFields(r)
     if err != nil {
         return nil
     }
 
-    var pd PacketDecoder
-    fh := &FixedHeader{pktType: pktType, flags: flags, remLength: remLength}
-    
-    switch pktType {
+    var pd PacketDecoder    
+    switch fh.pktType {
     case Connect:
         pd = &ConnectPkt{fh: fh}
     default:
