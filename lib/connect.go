@@ -13,8 +13,6 @@ const (
     ProtocolNameLength = 4
     ProtocolLevel = 4
     KeepAliveFieldLength = 2
-    ConnackHeaderByteLength = 2
-    ConnackByteLength = 4 
 )
 
 type ConnectPacket struct {
@@ -82,10 +80,11 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
 }
 
 func EncodeConnackPacket(p ConnackPacket) []byte {
-    fixedHeader := []byte{byte(Connack << 4), ConnackHeaderByteLength}
-    b := make([]byte, 0)
-    b = append(b, fixedHeader...)
-    return append(b, p.AckFlags, p.RtrnCode)
+    var cp = []byte{p.AckFlags, p.RtrnCode}
+    var pktType byte = Connack << 4
+    var remLength byte = 2
+    fixedHeader := []byte{pktType, remLength}
+    return append(fixedHeader, cp...)
 }
 
 // TODO: Should it be other interface other than io.Reader? seems to broad
