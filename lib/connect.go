@@ -3,7 +3,6 @@ package lib
 import (
     "bytes"
     "encoding/hex"
-    "errors"
     "fmt"
     "io"
 )
@@ -31,28 +30,28 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     buf := bytes.NewBuffer(b)
     protocolNameLen, err := GetStringLength(buf)
     if err != nil {
-        return nil, errors.New("")
+        return nil, err
     }
     protocol := make([]byte, protocolNameLen)
     _, err = io.ReadFull(buf, protocol)
     if (err != nil) {
-        return nil, errors.New("")
+        return nil, err
     }
     if (!IsValidUTF8Encoded(protocol)) {
-        return nil, errors.New("")
+        return nil, err
     }
     protocolLevel, err := buf.ReadByte()
     if (err != nil || protocolLevel != ProtocolLevel) {
-        return nil, errors.New("")
+        return nil, err
     }
     connectFlags, err := buf.ReadByte()
     if (err != nil) {
-        return nil, errors.New("")
+        return nil, err
     }
     keepAlive := make([]byte, KeepAliveFieldLength)
     _, err = io.ReadFull(buf, keepAlive)
     if (err != nil) {
-        return nil, errors.New("")
+        return nil, err
     }
     payload := buf.Bytes()
     cp := &ConnectPacket{
