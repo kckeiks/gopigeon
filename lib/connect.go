@@ -55,15 +55,24 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if (err != nil) {
         return nil, errors.New("")
     }
-    payload := make([]byte, len(buf.Bytes()))
-    _, err = io.ReadFull(buf, payload)
-    if (err != nil) {
-        return nil, errors.New("")
+    payload := buf.Bytes()
+    cp := &ConnectPacket{
+        protocolName: protocol, 
+        protocolLevel: protocolLevel,
+        userNameFlag: 0,
+        psswdFlag: 0,
+        willRetainFlag: 0,
+        willQoSFlag: 0,
+        willFlag: 0, 
+        cleanSession: 0,
+        keepAlive: keepAlive,    
     }
+    fmt.Printf("%+v\n", cp)
+    fmt.Println(len(payload))
     fmt.Println(hex.Dump(payload))
     fmt.Printf("% 08b\n", connectFlags)
     fmt.Println("Decoded.")
-    return nil, nil
+    return cp, nil
 }
 
 func HandleConnectPacket(r io.Reader, fh *FixedHeader) error {
