@@ -2,7 +2,6 @@ package lib
 
 import (
     "bytes"
-    // "encoding/binary"
     "encoding/hex"
     "errors"
     "fmt"
@@ -59,15 +58,14 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     cp := &ConnectPacket{
         protocolName: protocol, 
         protocolLevel: protocolLevel,
-        userNameFlag: 0,
-        psswdFlag: 0,
-        willRetainFlag: 0,
-        willQoSFlag: 0,
-        willFlag: 0, 
-        cleanSession: 0,
+        userNameFlag: connectFlags >> 7,
+        psswdFlag: connectFlags >> 6,
+        willRetainFlag: connectFlags >> 5,
+        willQoSFlag: connectFlags >> 3,
+        willFlag: connectFlags >> 2, 
+        cleanSession: connectFlags >> 1,
         keepAlive: keepAlive,    
     }
-    fmt.Printf("%+v\n", cp)
     fmt.Println(len(payload))
     fmt.Println(hex.Dump(payload))
     fmt.Printf("% 08b\n", connectFlags)
@@ -79,9 +77,12 @@ func HandleConnectPacket(r io.Reader, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
     _, err := io.ReadFull(r, b)
     if (err != nil) {
-        return errors.New(err.Error())
+        return err
     }
-    DecodeConnectPacket(b)
-    // handle stuff here
+    p, err := DecodeConnectPacket(b)
+    if (err != nil) {
+        return err
+    }
+    fmt.Printf("%+v\n", p)
     return nil
 }
