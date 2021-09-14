@@ -5,6 +5,7 @@ import (
     "encoding/hex"
     "fmt"
     "io"
+    "net"
 )
 
 const (   
@@ -12,6 +13,7 @@ const (
     ProtocolNameLength = 4
     ProtocolLevel = 4
     KeepAliveFieldLength = 2
+    ConnackByteLength = 4 
 )
 
 type ConnectPacket struct {
@@ -24,6 +26,12 @@ type ConnectPacket struct {
     willFlag byte
     cleanSession byte
     keepAlive []byte    
+}
+
+type ConnackPacket struct {
+    fh FixedHeader
+    AckFlags byte
+    RtrnCode byte
 }
 
 func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
@@ -73,9 +81,18 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     return cp, nil
 }
 
+func EncodeConnackPacket(p ConnackPacket) []byte {
+    b := [ConnackByteLength]byte{
+        p.fh.PktType << 4,
+        0x02,  // We should be getting length from struct
+        p.AckFlags,
+        p.RtrnCode,
+    }
+    return b[:]
+}
 
 // TODO: Should it be other interface other than io.Reader? seems to broad
-func HandleConnectPacket(r io.Reader, fh *FixedHeader) error {
+func HandleConnectPacket(r net.Conn, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
     _, err := io.ReadFull(r, b)
     if (err != nil) {
@@ -89,5 +106,22 @@ func HandleConnectPacket(r io.Reader, fh *FixedHeader) error {
     }
     fmt.Println("Control Packet:")
     fmt.Printf("%+v\n", p)
+
+    connackPkt := ConnackPacket{
+        fh: FixedHeader{
+            PktType: Connack,
+            RemLength: 2,
+        },
+        AckFlags: 0,
+        RtrnCode: 0,
+    }
+
+    rawConnackPkt := EncodeConnackPacket(connackPkt)
+    fmt.Println("Connack Packet:")
+    fmt.Printf("%+v\n", connackPkt)
+    fmt.Println("Raw Connack Packet:")
+    fmt.Println(rawConnackPkt)
+    r.Write(rawConnackPkt)
+    
     return nil
 }
