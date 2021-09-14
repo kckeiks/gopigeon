@@ -1,7 +1,7 @@
 package main
 
-import "github.com/kckeiks/gopigeon/server"
+import "github.com/kckeiks/gopigeon"
 
 func main()  {
-	server.ListenAndServe()
+	gopigeon.ListenAndServe()
 }

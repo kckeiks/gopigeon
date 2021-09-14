@@ -1,31 +1,46 @@
-package server
+package gopigeon
 
 import (
 	"fmt"
 	"net"
 	"os"
 	"github.com/kckeiks/gopigeon/lib"
+	"io"
 )
 
 func ListenAndServe() {
 	ln, err := net.Listen("tcp", ":8080")
 	checkError(err)
-	
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			// maybe log
+			// return CONNACK with error
 			continue
 		}
 		go HandleClient(conn)
-
 	}
 }
 
 func HandleClient(c net.Conn) {
 	defer c.Close()
-
-	lib.GetControlPkt(c)
+	for {
+		fh, err := lib.GetFixedHeaderFields(c)
+		// maybe use a switch here or use et method
+		if err != nil {
+			if err != io.EOF {
+				panic(err.Error())
+			}
+			break
+		}
+		switch fh.PktType {
+        case lib.Connect:
+            lib.HandleConnectPacket(c, fh)
+        default:
+			panic("Unknown Control Packet!")
+    	}
+		fmt.Println("looping...")
+	}
 }
 
 

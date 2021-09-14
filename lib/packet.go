@@ -12,7 +12,6 @@ const (
     Connack = 2
 )
 
-
 const (
     LSNibbleMask = 0x0F // 0000 1111
     MSNibbleMask = 0XF0 // 1111 0000
@@ -21,24 +20,18 @@ const (
 const EncodedStrByteCount = 2
 
 type FixedHeader struct {
-    pktType byte
+    PktType byte
     flags byte
-    remLength uint32
-}
-
-type PacketDecoder interface {
-    Decode(r io.Reader) error
+    RemLength uint32
 }
 
 
 func GetFixedHeaderFields(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
-
     _, err := io.ReadFull(r, buff)
     if err != nil {
         return nil, err
     }
-
     flags := buff[0] & LSNibbleMask 
     pktType := buff[0] >> 4
 
@@ -46,8 +39,7 @@ func GetFixedHeaderFields(r io.Reader) (*FixedHeader, error) {
     if err != nil {
         return nil, err
     }
-
-    return &FixedHeader{pktType:pktType, flags:flags, remLength:remLength}, nil
+    return &FixedHeader{PktType:pktType, flags:flags, RemLength:remLength}, nil
 }
 
 func GetRemLength(r io.Reader) (uint32, error) {
@@ -61,13 +53,11 @@ func GetRemLength(r io.Reader) (uint32, error) {
         if (err != nil) {
             return 0, err
         }
-
         val += uint64(encodedByte[0] & byte(127)) * mul
         mul *= uint64(128)
         if (mul > maxMulVal) {
             return 0, errors.New("")
         }
-
         if ((encodedByte[0] & byte(128)) == 0) {
             return uint32(val), nil
         }
@@ -78,7 +68,6 @@ func IsValidUTF8Encoded(bytes []byte) bool {
     if (!utf8.Valid(bytes)) {
         return false
     }
-
     for len(bytes) > 0 {
         r, size := utf8.DecodeRune(bytes)
     
@@ -88,29 +77,5 @@ func IsValidUTF8Encoded(bytes []byte) bool {
         }
         bytes = bytes[:len(bytes)-size]
     }
-
     return true
 }
-
-func GetControlPkt(r io.Reader) PacketDecoder {
-    fh, err := GetFixedHeaderFields(r)
-    if err != nil {
-        return nil
-    }
-
-    var pd PacketDecoder    
-    switch fh.pktType {
-    case Connect:
-        pd = &ConnectPkt{fh: fh}
-    default:
-        return nil
-    }
-
-    err = pd.Decode(r)
-    if err != nil {
-        return nil
-    }
-
-    return pd
-}
-
