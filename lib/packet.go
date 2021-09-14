@@ -20,6 +20,10 @@ const (
 
 const EncodedStrByteCount = 2
 
+type ClientSession struct {
+    ConnectRcvd bool
+}
+
 type FixedHeader struct {
     PktType byte
     Flags byte

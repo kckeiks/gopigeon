@@ -24,6 +24,7 @@ func ListenAndServe() {
 
 func HandleClient(c net.Conn) {
 	defer c.Close()
+	cs := lib.ClientSession{}
 	for {
 		fh, err := lib.GetFixedHeaderFields(c)
 		// maybe use a switch here or use et method
@@ -35,9 +36,13 @@ func HandleClient(c net.Conn) {
 		}
 		fmt.Println("Package fixed-header received: ")
 		fmt.Printf("%+v\n", fh)
+		if cs.ConnectRcvd && fh.PktType == lib.Connect {
+			break
+		}
 		switch fh.PktType {
         case lib.Connect:
-            lib.HandleConnectPacket(c, fh)
+				lib.HandleConnectPacket(c, fh)
+				cs.ConnectRcvd = true
         default:
 			panic("Unknown Control Packet!")
     	}
