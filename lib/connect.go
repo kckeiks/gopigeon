@@ -65,23 +65,29 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         cleanSession: connectFlags >> 1,
         keepAlive: keepAlive,    
     }
+    fmt.Println("Connect flags:")
+    fmt.Printf("% 08b\n", connectFlags)
+    fmt.Println("Payload:")
     fmt.Println(len(payload))
     fmt.Println(hex.Dump(payload))
-    fmt.Printf("% 08b\n", connectFlags)
-    fmt.Println("Decoded.")
     return cp, nil
 }
 
+
+// TODO: Should it be other interface other than io.Reader? seems to broad
 func HandleConnectPacket(r io.Reader, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
     _, err := io.ReadFull(r, b)
     if (err != nil) {
         return err
     }
+    fmt.Println("Packet without fixed header:")
+    fmt.Println(hex.Dump(b))
     p, err := DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
+    fmt.Println("Control Packet:")
     fmt.Printf("%+v\n", p)
     return nil
 }

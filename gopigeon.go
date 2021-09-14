@@ -33,6 +33,8 @@ func HandleClient(c net.Conn) {
 			}
 			break
 		}
+		fmt.Println("Package fixed-header received: ")
+		fmt.Printf("%+v\n", fh)
 		switch fh.PktType {
         case lib.Connect:
             lib.HandleConnectPacket(c, fh)

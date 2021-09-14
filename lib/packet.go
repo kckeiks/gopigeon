@@ -22,7 +22,7 @@ const EncodedStrByteCount = 2
 
 type FixedHeader struct {
     PktType byte
-    flags byte
+    Flags byte
     RemLength uint32
 }
 
@@ -40,7 +40,7 @@ func GetFixedHeaderFields(r io.Reader) (*FixedHeader, error) {
     if err != nil {
         return nil, err
     }
-    return &FixedHeader{PktType:pktType, flags:flags, RemLength:remLength}, nil
+    return &FixedHeader{PktType:pktType, Flags:flags, RemLength:remLength}, nil
 }
 
 func GetRemLength(r io.Reader) (uint32, error) {
