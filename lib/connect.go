@@ -2,7 +2,7 @@ package lib
 
 import (
     "bytes"
-    "encoding/binary"
+    // "encoding/binary"
     "encoding/hex"
     "errors"
     "fmt"
@@ -17,7 +17,6 @@ const (
 )
 
 type ConnectPacket struct {
-    fh *FixedHeader
     protocolName []byte
     protocolLevel byte
     userNameFlag byte
@@ -29,49 +28,42 @@ type ConnectPacket struct {
     keepAlive []byte    
 }
 
-func DecodeConnectPacket(packet []byte) error {
-    buff := bytes.NewBuffer(packet)
-    protocolNameLenBuff := make([]byte, EncodedStrByteCount)
-    _, err := io.ReadFull(buff, protocolNameLenBuff)
-    if (err != nil) {
-        return errors.New("")
+func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
+    buf := bytes.NewBuffer(b)
+    protocolNameLen, err := GetStringLength(buf)
+    if err != nil {
+        return nil, errors.New("")
     }
-    pnl := binary.BigEndian.Uint16(protocolNameLenBuff)
-    if (pnl != ProtocolNameLength) {
-        return errors.New("")
-    }
-    protocol := make([]byte, pnl)
-    _, err = io.ReadFull(buff, protocol)
+    protocol := make([]byte, protocolNameLen)
+    _, err = io.ReadFull(buf, protocol)
     if (err != nil) {
-        return errors.New("")
+        return nil, errors.New("")
     }
     if (!IsValidUTF8Encoded(protocol)) {
-        return errors.New("")
+        return nil, errors.New("")
     }
-    var protocolLevel byte
-    protocolLevel, err = buff.ReadByte()
+    protocolLevel, err := buf.ReadByte()
     if (err != nil || protocolLevel != ProtocolLevel) {
-        return errors.New("")
+        return nil, errors.New("")
     }
-    var connectFlags byte
-    connectFlags, err = buff.ReadByte()
+    connectFlags, err := buf.ReadByte()
     if (err != nil) {
-        return errors.New("")
+        return nil, errors.New("")
     }
     keepAlive := make([]byte, KeepAliveFieldLength)
-    _, err = io.ReadFull(buff, keepAlive)
+    _, err = io.ReadFull(buf, keepAlive)
     if (err != nil) {
-        return errors.New("")
+        return nil, errors.New("")
     }
-    payload := make([]byte, len(buff.Bytes()))
-    _, err = io.ReadFull(buff, payload)
+    payload := make([]byte, len(buf.Bytes()))
+    _, err = io.ReadFull(buf, payload)
     if (err != nil) {
-        return errors.New("")
+        return nil, errors.New("")
     }
     fmt.Println(hex.Dump(payload))
     fmt.Printf("% 08b\n", connectFlags)
     fmt.Println("Decoded.")
-    return nil
+    return nil, nil
 }
 
 func HandleConnectPacket(r io.Reader, fh *FixedHeader) error {

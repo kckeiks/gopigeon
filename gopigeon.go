@@ -15,7 +15,7 @@ func ListenAndServe() {
 		conn, err := ln.Accept()
 		if err != nil {
 			// maybe log
-			// return CONNACK with error
+			// return CONNACK with error but cant send that if we dont have a conn duh
 			continue
 		}
 		go HandleClient(conn)

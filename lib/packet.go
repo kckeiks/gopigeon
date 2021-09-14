@@ -3,6 +3,7 @@ package lib
 import (
     "errors"
     "io"
+    "encoding/binary"
     "unicode/utf8"
     "unicode"
 )
@@ -78,4 +79,18 @@ func IsValidUTF8Encoded(bytes []byte) bool {
         bytes = bytes[:len(bytes)-size]
     }
     return true
+}
+
+
+func GetStringLength(r io.Reader) (uint16, error) {
+    protocolNameLen := make([]byte, EncodedStrByteCount)
+    _, err := io.ReadFull(r, protocolNameLen)
+    if (err != nil) {
+        return 0, errors.New("")
+    }
+    pnl := binary.BigEndian.Uint16(protocolNameLen)
+    if (pnl != ProtocolNameLength) {
+        return 0, errors.New("")
+    }
+    return pnl, nil
 }
