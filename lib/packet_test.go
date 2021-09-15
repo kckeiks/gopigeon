@@ -22,6 +22,7 @@ func TestGetRemLengthSuccessInvalidRemLength(t *testing.T) {
 
 func TestIsValidUTF8EncodedSuccess(t *testing.T) {
 	// Given: some valid utf8 encoded string
+	// 77 81 84 84 = MQTT
 	// When: we try to validated
 	// Then: we get that it is valid
 }
