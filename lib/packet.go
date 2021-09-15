@@ -86,15 +86,11 @@ func IsValidUTF8Encoded(bytes []byte) bool {
 }
 
 
-func GetStringLength(r io.Reader) (uint16, error) {
-    protocolNameLen := make([]byte, EncodedStrByteCount)
-    _, err := io.ReadFull(r, protocolNameLen)
+func ReadStringLength(r io.Reader) (uint16, error) {
+    b := make([]byte, EncodedStrByteCount)
+    _, err := io.ReadFull(r, b)
     if (err != nil) {
         return 0, errors.New("")
     }
-    pnl := binary.BigEndian.Uint16(protocolNameLen)
-    if (pnl != ProtocolNameLength) {
-        return 0, errors.New("")
-    }
-    return pnl, nil
+    return binary.BigEndian.Uint16(b), nil
 }

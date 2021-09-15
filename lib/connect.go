@@ -34,8 +34,8 @@ type ConnackPacket struct {
 
 func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     buf := bytes.NewBuffer(b)
-    protocolNameLen, err := GetStringLength(buf)
-    if err != nil {
+    protocolNameLen, err := ReadStringLength(buf)
+    if (protocolNameLen != ProtocolNameLength) {
         return nil, err
     }
     protocol := make([]byte, protocolNameLen)
