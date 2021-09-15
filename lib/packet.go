@@ -49,17 +49,17 @@ func GetFixedHeaderFields(r io.Reader) (*FixedHeader, error) {
 
 func GetRemLength(r io.Reader) (uint32, error) {
     // http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Table_2.4_Size    
-    mul := uint64(1)
-    val := uint64(0)
-    maxMulVal := uint64(128*128*128)
+    var mul uint = 1
+    var val uint = 0
+    var maxMulVal uint = 128*128*128
     encodedByte := make([]byte, 1)
     for {
         _, err := r.Read(encodedByte)
         if (err != nil) {
             return 0, err
         }
-        val += uint64(encodedByte[0] & byte(127)) * mul
-        mul *= uint64(128)
+        val += uint(encodedByte[0] & byte(127)) * mul
+        mul *= 128
         if (mul > maxMulVal) {
             return 0, errors.New("")
         }
