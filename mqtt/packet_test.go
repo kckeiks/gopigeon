@@ -1,15 +1,14 @@
-package lib
+package mqtt
 
 import (
 	"bytes"
 	"reflect"
 	"testing"
-	"github.com/kckeiks/gopigeon/internal/testutils"
 )
 
 func TestGetFixedHeaderFieldsSuccess(t *testing.T) {
 	// Given: A stream of bytes representing a mqtt header
-	h := testutils.NewTestEncodedFixedHeader()
+	h := newTestEncodedFixedHeader()
 	// When: we try to decode the header
 	result, _ := ReadFixedHeader(h)
 	// Then: we get the values as expected

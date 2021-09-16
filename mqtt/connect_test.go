@@ -1,10 +1,9 @@
-package lib
+package mqtt
 
 import (
 	"bytes"
 	"reflect"
 	"testing"
-	"github.com/kckeiks/gopigeon/internal/testutils"
 	"fmt"
 )
 
@@ -14,7 +13,7 @@ func NewTestEncodedConnackPkt() []byte {
 
 func TestDecodeConnectPacketSuccess(t *testing.T) {
 	// Given: a stream/slice of bytes that represents a connect pkt
-	cp := testutils.NewTestEncodedConnectPkt()
+	cp := newTestEncodedConnectPkt()
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodeConnectPacket(cp[2:])
@@ -58,7 +57,7 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: a ReadWriter implementation like bytes.Buffer or net.Conn
 	// Given: we can read our Connect packet from a ReadWriter 
-	cp := testutils.NewTestEncodedConnectPkt()
+	cp := newTestEncodedConnectPkt()
 	fh := &FixedHeader{
 		PktType: CONNECT,
 		Flags: 0, 

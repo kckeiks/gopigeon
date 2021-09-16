@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"github.com/kckeiks/gopigeon/lib"
+	"github.com/kckeiks/gopigeon/mqtt"
 	"io"
 )
 
@@ -24,10 +24,10 @@ func ListenAndServe() {
 
 func HandleClient(c net.Conn) {
 	defer c.Close()
-	cs := lib.ClientSession{}
+	cs := mqtt.ClientSession{}
 	disconnect := false
 	for !disconnect {
-		fh, err := lib.ReadFixedHeader(c)
+		fh, err := mqtt.ReadFixedHeader(c)
 		// maybe use a switch here or use et method
 		if err != nil {
 			if err != io.EOF {
@@ -36,16 +36,16 @@ func HandleClient(c net.Conn) {
 			break
 		}
 		fmt.Printf("Package fixed-header received: %+v\n", fh)
-		if cs.ConnectRcvd && fh.PktType == lib.CONNECT {
+		if cs.ConnectRcvd && fh.PktType == mqtt.CONNECT {
 			break
 		}
 		switch fh.PktType {
-        case lib.CONNECT:
-			lib.HandleConnectPacket(c, fh)
+        case mqtt.CONNECT:
+			mqtt.HandleConnectPacket(c, fh)
 			cs.ConnectRcvd = true
-		case lib.PUBLISH:
-			lib.HandlePublish(c, fh)
-		case lib.DISCONNECT:
+		case mqtt.PUBLISH:
+			mqtt.HandlePublish(c, fh)
+		case mqtt.DISCONNECT:
 			disconnect = true
         default:
 			panic("Unknown Control Packet!")
