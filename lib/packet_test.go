@@ -167,3 +167,17 @@ func TestIsValidUTF8EncodedInvalid(t *testing.T) {
 		t.Fatalf("Got IsValidUTF8Encoded true but expected false.")
 	}
 }
+
+func TestReadEncodedStr(t *testing.T) {
+	// Given: an encoded string prepended with it's length
+	encodedStr := bytes.NewBuffer([]byte{0, 4, 77, 81, 84, 84}) // MQTT
+	// When: we decoded it
+	result, err := ReadEncodedStr(encodedStr)
+	// Then: we get a str representation of it
+	if err != nil {
+		t.Fatalf("Got an unexpected error.")
+	}
+	if result != "MQTT" {
+		t.Fatalf("Got %s but expected MQTT.", result)
+	} 
+}

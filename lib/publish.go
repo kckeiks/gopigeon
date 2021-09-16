@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"bytes"
 	// "encoding/binary"
-	"encoding/hex"
+	// "encoding/hex"
 )
 
 type PublishPacket struct {
-	Topic []byte
+	Topic string
 	PacketId uint16
 	Payload []byte
 }
@@ -20,8 +20,8 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-	fmt.Println("Publish Packet without fixed header:")
-    fmt.Println(hex.Dump(b))
+	// fmt.Println("Publish Packet without fixed header:")
+    // fmt.Println(hex.Dump(b))
 	pp, err := DecodePublishPacket(b)
 	if err != nil {
 		return nil
@@ -33,14 +33,12 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 func DecodePublishPacket(b []byte) (*PublishPacket, error) {
 	pktLen := len(b)
 	buf := bytes.NewBuffer(b)
-	topicLen, err := ReadStringLength(buf)
-	topic := make([]byte, topicLen)
-	_, err = io.ReadFull(buf, topic)
+	topic, err := ReadEncodedStr(buf)
     if (err != nil) {
         return nil, err
     }
 	// Note: When QoS is 0 there is no packet id
-	payloadLen := pktLen - (STRLEN_LEN + int(topicLen))
+	payloadLen := pktLen - (STRLEN_LEN + len(topic))
 	payload := make([]byte, payloadLen)
 	_, err = io.ReadFull(buf, payload)
 	if err != nil {
@@ -50,5 +48,5 @@ func DecodePublishPacket(b []byte) (*PublishPacket, error) {
 }
 
 func (p *PublishPacket) String() string {
-	return fmt.Sprintf("&PublishPacket{Topic: %s, PacketID: %d, Payload: %s}\n", string(p.Topic), p.PacketId, string(p.Payload))
+	return fmt.Sprintf("&PublishPacket{Topic: %s, PacketID: %d, Payload: %s}\n", p.Topic, p.PacketId, string(p.Payload))
 }

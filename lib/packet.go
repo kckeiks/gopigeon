@@ -82,7 +82,6 @@ func IsValidUTF8Encoded(bytes []byte) bool {
     }
     for len(bytes) > 0 {
         r, size := utf8.DecodeRune(bytes)
-    
         // check if it is a control character (including the null character) or if it is a non-character
         if (unicode.Is(unicode.Cc, r) || unicode.Is(unicode.Noncharacter_Code_Point, r)) {
             return false
@@ -92,12 +91,20 @@ func IsValidUTF8Encoded(bytes []byte) bool {
     return true
 }
 
-
-func ReadStringLength(r io.Reader) (uint16, error) {
+// TODO: Fix this function
+func ReadEncodedStr(r io.Reader) (string, error) {
     b := make([]byte, EncodedStrByteCount)
     _, err := io.ReadFull(r, b)
     if (err != nil) {
-        return 0, errors.New("")
+        return "", err
     }
-    return binary.BigEndian.Uint16(b), nil
+    str := make([]byte, binary.BigEndian.Uint16(b))
+    _, err = io.ReadFull(r, str)
+    if (err != nil) {
+        return "", err
+    }
+    if !IsValidUTF8Encoded(str) {
+        return "", errors.New("")
+    }
+    return string(str), nil
 }

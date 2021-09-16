@@ -21,7 +21,7 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 	fmt.Println(result)
 	// Then: we get a connect packet struct with the right values
 	expectedResult := &ConnectPacket{
-		protocolName:[]byte{77, 81, 84, 84},
+		protocolName:"MQTT",
 		protocolLevel:4, 
 		userNameFlag:0, 
 		psswdFlag:0, 

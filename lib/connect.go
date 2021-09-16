@@ -2,20 +2,21 @@ package lib
 
 import (
     "bytes"
-    // "encoding/hex"
-   // "fmt"
+    //"encoding/hex"
+    "fmt"
     "io"
+    "errors"
 )
 
 const (   
     ProtocolName = "MQTT"
-    ProtocolNameLength = 4
+    PROTOCOL_NAME_LEN = 4
     ProtocolLevel = 4
     KeepAliveFieldLength = 2
 )
 
 type ConnectPacket struct {
-    protocolName []byte
+    protocolName string
     protocolLevel byte
     userNameFlag byte
     psswdFlag byte
@@ -33,17 +34,13 @@ type ConnackPacket struct {
 
 func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     buf := bytes.NewBuffer(b)
-    protocolNameLen, err := ReadStringLength(buf)
-    if (protocolNameLen != ProtocolNameLength) {
+    protocol, err := ReadEncodedStr(buf)
+    if err != nil {
         return nil, err
     }
-    protocol := make([]byte, protocolNameLen)
-    _, err = io.ReadFull(buf, protocol)
-    if (err != nil) {
-        return nil, err
-    }
-    if (!IsValidUTF8Encoded(protocol)) {
-        return nil, err
+    // TODO: validate protocol name
+    if (len(protocol) != PROTOCOL_NAME_LEN) {
+        return nil, errors.New("")
     }
     protocolLevel, err := buf.ReadByte()
     if (err != nil || protocolLevel != ProtocolLevel) {
@@ -95,10 +92,11 @@ func HandleConnectPacket(r io.ReadWriter, fh *FixedHeader) error {
     }
     // fmt.Println("Packet without fixed header:")
     // fmt.Println(hex.Dump(b))
-    _, err = DecodeConnectPacket(b)
+    cp, err := DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
+    fmt.Printf("Connect Packet: %+v\n", cp)
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,
