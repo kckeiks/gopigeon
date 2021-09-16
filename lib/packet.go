@@ -12,6 +12,7 @@ import (
 const (
     Connect = 1
     Connack = 2
+    PUBLISH = 3
 )
 
 const (
