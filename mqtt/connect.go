@@ -9,10 +9,8 @@ import (
 )
 
 const (   
-    ProtocolName = "MQTT"
-    PROTOCOL_NAME_LEN = 4
-    ProtocolLevel = 4
-    KeepAliveFieldLength = 2
+    PROTOCOL_LEVEL = 4
+    KEEP_ALIVE_FIELD_LEN = 2
 )
 
 type ConnectPacket struct {
@@ -43,14 +41,14 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         return nil, errors.New("")
     }
     protocolLevel, err := buf.ReadByte()
-    if (err != nil || protocolLevel != ProtocolLevel) {
+    if (err != nil || protocolLevel != PROTOCOL_LEVEL) {
         return nil, err
     }
     connectFlags, err := buf.ReadByte()
     if (err != nil) {
         return nil, err
     }
-    keepAlive := make([]byte, KeepAliveFieldLength)
+    keepAlive := make([]byte, KEEP_ALIVE_FIELD_LEN)
     _, err = io.ReadFull(buf, keepAlive)
     if (err != nil) {
         return nil, err

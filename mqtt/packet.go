@@ -17,12 +17,13 @@ const (
 )
 
 const (
-    LSNibbleMask = 0x0F // 0000 1111
-    MSNibbleMask = 0XF0 // 1111 0000
+    LSNIBBLE_MASK = 0x0F // 0000 1111
+    MSNIBBLE_MASK = 0XF0 // 1111 0000
 )
 
 const (
-    EncodedStrByteCount = 2
+    PROTOCOL_NAME = "MQTT"
+    PROTOCOL_NAME_LEN = 4
     PACKETID_LEN = 2
     STRLEN_LEN = 2
 )
@@ -37,7 +38,6 @@ type FixedHeader struct {
     RemLength uint32
 }
 
-
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
     _, err := io.ReadFull(r, buff)
@@ -45,7 +45,7 @@ func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
     if err != nil {
         return nil, err
     }
-    flags := buff[0] & LSNibbleMask 
+    flags := buff[0] & LSNIBBLE_MASK 
     pktType := buff[0] >> 4
 
     remLength, err := ReadRemLength(r)
@@ -96,7 +96,7 @@ func IsValidUTF8Encoded(bytes []byte) bool {
 
 // TODO: Fix this function
 func ReadEncodedStr(r io.Reader) (string, error) {
-    b := make([]byte, EncodedStrByteCount)
+    b := make([]byte, STRLEN_LEN)
     _, err := io.ReadFull(r, b)
     if (err != nil) {
         return "", err
