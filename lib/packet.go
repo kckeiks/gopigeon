@@ -60,10 +60,10 @@ func GetRemLength(r io.Reader) (uint32, error) {
             return 0, err
         }
         val += uint(encodedByte[0] & byte(127)) * mul
-        mul *= 128
         if (mul > maxMulVal) {
             return 0, errors.New("")
         }
+        mul *= 128
         if ((encodedByte[0] & byte(128)) == 0) {
             return uint32(val), nil
         }
