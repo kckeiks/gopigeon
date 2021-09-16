@@ -1,21 +1,20 @@
-package lib
+package mqtt
 
 import (
     "bytes"
-    "encoding/hex"
+    //"encoding/hex"
     "fmt"
     "io"
+    "errors"
 )
 
 const (   
-    ProtocolName = "MQTT"
-    ProtocolNameLength = 4
-    ProtocolLevel = 4
-    KeepAliveFieldLength = 2
+    PROTOCOL_LEVEL = 4
+    KEEP_ALIVE_FIELD_LEN = 2
 )
 
 type ConnectPacket struct {
-    protocolName []byte
+    protocolName string
     protocolLevel byte
     userNameFlag byte
     psswdFlag byte
@@ -33,32 +32,28 @@ type ConnackPacket struct {
 
 func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     buf := bytes.NewBuffer(b)
-    protocolNameLen, err := ReadStringLength(buf)
-    if (protocolNameLen != ProtocolNameLength) {
+    protocol, err := ReadEncodedStr(buf)
+    if err != nil {
         return nil, err
     }
-    protocol := make([]byte, protocolNameLen)
-    _, err = io.ReadFull(buf, protocol)
-    if (err != nil) {
-        return nil, err
-    }
-    if (!IsValidUTF8Encoded(protocol)) {
-        return nil, err
+    // TODO: validate protocol name
+    if (len(protocol) != PROTOCOL_NAME_LEN) {
+        return nil, errors.New("")
     }
     protocolLevel, err := buf.ReadByte()
-    if (err != nil || protocolLevel != ProtocolLevel) {
+    if (err != nil || protocolLevel != PROTOCOL_LEVEL) {
         return nil, err
     }
     connectFlags, err := buf.ReadByte()
     if (err != nil) {
         return nil, err
     }
-    keepAlive := make([]byte, KeepAliveFieldLength)
+    keepAlive := make([]byte, KEEP_ALIVE_FIELD_LEN)
     _, err = io.ReadFull(buf, keepAlive)
     if (err != nil) {
         return nil, err
     }
-    payload := buf.Bytes()
+    // payload := buf.Bytes()
     cp := &ConnectPacket{
         protocolName: protocol, 
         protocolLevel: protocolLevel,
@@ -70,17 +65,17 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         cleanSession: connectFlags >> 1,
         keepAlive: keepAlive,    
     }
-    fmt.Println("Connect flags:")
-    fmt.Printf("% 08b\n", connectFlags)
-    fmt.Println("Payload:")
-    fmt.Println(len(payload))
-    fmt.Println(hex.Dump(payload))
+    // fmt.Println("Connect flags:")
+    // fmt.Printf("% 08b\n", connectFlags)
+    // fmt.Println("Payload:")
+    // fmt.Println(len(payload))
+    // fmt.Println(hex.Dump(payload))
     return cp, nil
 }
 
 func EncodeConnackPacket(p ConnackPacket) []byte {
     var cp = []byte{p.AckFlags, p.RtrnCode}
-    var pktType byte = Connack << 4
+    var pktType byte = CONNACK << 4
     var remLength byte = 2
     fixedHeader := []byte{pktType, remLength}
     return append(fixedHeader, cp...)
@@ -93,25 +88,23 @@ func HandleConnectPacket(r io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-    fmt.Println("Packet without fixed header:")
-    fmt.Println(hex.Dump(b))
-    p, err := DecodeConnectPacket(b)
+    // fmt.Println("Packet without fixed header:")
+    // fmt.Println(hex.Dump(b))
+    cp, err := DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
-    fmt.Println("Control Packet:")
-    fmt.Printf("%+v\n", p)
-
+    fmt.Printf("Connect Packet: %+v\n", cp)
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,
     }
 
     rawConnackPkt := EncodeConnackPacket(connackPkt)
-    fmt.Println("Connack Packet:")
-    fmt.Printf("%+v\n", connackPkt)
-    fmt.Println("Raw Connack Packet:")
-    fmt.Println(rawConnackPkt)
+    // fmt.Println("Connack Packet:")
+    // fmt.Printf("%+v\n", connackPkt)
+    // fmt.Println("Raw Connack Packet:")
+    // fmt.Println(rawConnackPkt)
     r.Write(rawConnackPkt)
     
     return nil
