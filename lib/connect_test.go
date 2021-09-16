@@ -59,7 +59,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: a ReadWriter implementation like bytes.Buffer or net.Conn
 	cp := testutils.NewTestEncodedConnectPkt()
 	fh := &FixedHeader{
-		PktType: Connect,
+		PktType: CONNECT,
 		Flags: 0, 
 		RemLength: 12,
 	}

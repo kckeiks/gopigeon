@@ -10,9 +10,10 @@ import (
 )
 
 const (
-    Connect = 1
-    Connack = 2
-    PUBLISH = 3 
+    CONNECT    = 1
+    CONNACK    = 2
+    PUBLISH    = 3
+    DISCONNECT = 14
 )
 
 const (

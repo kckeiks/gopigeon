@@ -80,7 +80,7 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
 
 func EncodeConnackPacket(p ConnackPacket) []byte {
     var cp = []byte{p.AckFlags, p.RtrnCode}
-    var pktType byte = Connack << 4
+    var pktType byte = CONNACK << 4
     var remLength byte = 2
     fixedHeader := []byte{pktType, remLength}
     return append(fixedHeader, cp...)
