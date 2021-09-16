@@ -12,7 +12,7 @@ import (
 const (
     Connect = 1
     Connack = 2
-    PUBLISH = 3
+    PUBLISH = 3 
 )
 
 const (
@@ -33,7 +33,7 @@ type FixedHeader struct {
 }
 
 
-func GetFixedHeaderFields(r io.Reader) (*FixedHeader, error) {
+func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
     _, err := io.ReadFull(r, buff)
     if err != nil {
@@ -42,14 +42,14 @@ func GetFixedHeaderFields(r io.Reader) (*FixedHeader, error) {
     flags := buff[0] & LSNibbleMask 
     pktType := buff[0] >> 4
 
-    remLength, err := GetRemLength(r)
+    remLength, err := ReadRemLength(r)
     if err != nil {
         return nil, err
     }
     return &FixedHeader{PktType:pktType, Flags:flags, RemLength:remLength}, nil
 }
 
-func GetRemLength(r io.Reader) (uint32, error) {
+func ReadRemLength(r io.Reader) (uint32, error) {
     // http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Table_2.4_Size    
     var mul uint = 1
     var val uint = 0

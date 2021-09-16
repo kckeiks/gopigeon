@@ -11,7 +11,7 @@ func TestGetFixedHeaderFieldsSuccess(t *testing.T) {
 	// Given: A stream of bytes representing a mqtt header
 	h := testutils.NewTestEncodedFixedHeader()
 	// When: we try to decode the header
-	result, _ := GetFixedHeaderFields(h)
+	result, _ := ReadFixedHeader(h)
 	// Then: we get the values as expected
 	expectedResult := &FixedHeader{PktType:1, Flags:0, RemLength:12}
 	if !reflect.DeepEqual(result, expectedResult) {
@@ -30,56 +30,56 @@ func TestGetRemLengthEdgeCasesSuccess(t *testing.T) {
 	fourByteMin := []byte{0x80, 0x80, 0x80, 0x01}
 	fourByteMax := []byte{0xFF, 0xFF, 0xFF, 0x7F}
 	// When: we decode them
-	result, _ := GetRemLength(bytes.NewBuffer(oneByteMin))
+	result, _ := ReadRemLength(bytes.NewBuffer(oneByteMin))
 	// Then: we get the values as expected
 	expectedResult := uint32(0)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
 	}
 	// When: we decode them
-	result, _ = GetRemLength(bytes.NewBuffer(oneByteMax))
+	result, _ = ReadRemLength(bytes.NewBuffer(oneByteMax))
 	// Then: we get the values as expected
 	expectedResult = uint32(127)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
 	}
 	// When: we decode them
-	result, _ = GetRemLength(bytes.NewBuffer(twoByteMin))
+	result, _ = ReadRemLength(bytes.NewBuffer(twoByteMin))
 	// Then: we get the values as expected
 	expectedResult = uint32(128)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
 	}
 	// When: we decode them
-	result, _ = GetRemLength(bytes.NewBuffer(twoByteMax))
+	result, _ = ReadRemLength(bytes.NewBuffer(twoByteMax))
 	// Then: we get the values as expected
 	expectedResult = uint32(16383)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
 	}
 	// When: we decode them
-	result, _ = GetRemLength(bytes.NewBuffer(threeByteMin))
+	result, _ = ReadRemLength(bytes.NewBuffer(threeByteMin))
 	// Then: we get the values as expected
 	expectedResult = uint32(16384)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
 	} 
 	// When: we decode them
-	result, _ = GetRemLength(bytes.NewBuffer(threeByteMax))
+	result, _ = ReadRemLength(bytes.NewBuffer(threeByteMax))
 	// Then: we get the values as expected
 	expectedResult = uint32(2097151)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
 	}
 	// When: we decode them
-	result, _ = GetRemLength(bytes.NewBuffer(fourByteMin))
+	result, _ = ReadRemLength(bytes.NewBuffer(fourByteMin))
 	// Then: we get the values as expected
 	expectedResult = uint32(2097152)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
 	} 
 	// When: we decode them
-	result, _ = GetRemLength(bytes.NewBuffer(fourByteMax))
+	result, _ = ReadRemLength(bytes.NewBuffer(fourByteMax))
 	// Then: we get the values as expected
 	expectedResult = uint32(268435455)
 	if result != expectedResult {
@@ -91,7 +91,7 @@ func TestGetRemLengthSuccessInvalidRemLength(t *testing.T) {
 	// Given: some encoded remaining lengths using more than 4 bytes
 	invalidEncodedRemLen := []byte{0x80, 0x80, 0x80, 0x80, 0x01}
 	// When: we decode them
-	_, err := GetRemLength(bytes.NewBuffer(invalidEncodedRemLen))
+	_, err := ReadRemLength(bytes.NewBuffer(invalidEncodedRemLen))
 	// Then: we get an error
 	if err == nil {
 		t.Fatalf("Did not get an error.")
