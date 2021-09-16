@@ -2,8 +2,8 @@ package lib
 
 import (
     "bytes"
-    "encoding/hex"
-    "fmt"
+    // "encoding/hex"
+   // "fmt"
     "io"
 )
 
@@ -58,7 +58,7 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if (err != nil) {
         return nil, err
     }
-    payload := buf.Bytes()
+    // payload := buf.Bytes()
     cp := &ConnectPacket{
         protocolName: protocol, 
         protocolLevel: protocolLevel,
@@ -70,11 +70,11 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         cleanSession: connectFlags >> 1,
         keepAlive: keepAlive,    
     }
-    fmt.Println("Connect flags:")
-    fmt.Printf("% 08b\n", connectFlags)
-    fmt.Println("Payload:")
-    fmt.Println(len(payload))
-    fmt.Println(hex.Dump(payload))
+    // fmt.Println("Connect flags:")
+    // fmt.Printf("% 08b\n", connectFlags)
+    // fmt.Println("Payload:")
+    // fmt.Println(len(payload))
+    // fmt.Println(hex.Dump(payload))
     return cp, nil
 }
 
@@ -93,25 +93,22 @@ func HandleConnectPacket(r io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-    fmt.Println("Packet without fixed header:")
-    fmt.Println(hex.Dump(b))
-    p, err := DecodeConnectPacket(b)
+    // fmt.Println("Packet without fixed header:")
+    // fmt.Println(hex.Dump(b))
+    _, err = DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
-    fmt.Println("Control Packet:")
-    fmt.Printf("%+v\n", p)
-
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,
     }
 
     rawConnackPkt := EncodeConnackPacket(connackPkt)
-    fmt.Println("Connack Packet:")
-    fmt.Printf("%+v\n", connackPkt)
-    fmt.Println("Raw Connack Packet:")
-    fmt.Println(rawConnackPkt)
+    // fmt.Println("Connack Packet:")
+    // fmt.Printf("%+v\n", connackPkt)
+    // fmt.Println("Raw Connack Packet:")
+    // fmt.Println(rawConnackPkt)
     r.Write(rawConnackPkt)
     
     return nil

@@ -20,7 +20,11 @@ const (
     MSNibbleMask = 0XF0 // 1111 0000
 )
 
-const EncodedStrByteCount = 2
+const (
+    EncodedStrByteCount = 2
+    PACKETID_LEN = 2
+    STRLEN_LEN = 2
+)
 
 type ClientSession struct {
     ConnectRcvd bool
