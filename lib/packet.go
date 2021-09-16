@@ -6,7 +6,7 @@ import (
     "encoding/binary"
     "unicode/utf8"
     "unicode"
-    // "fmt"
+    "fmt"
 )
 
 const (
@@ -41,6 +41,7 @@ type FixedHeader struct {
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
     _, err := io.ReadFull(r, buff)
+    fmt.Println(buff)
     if err != nil {
         return nil, err
     }
@@ -62,6 +63,8 @@ func ReadRemLength(r io.Reader) (uint32, error) {
     encodedByte := make([]byte, 1)
     for {
         _, err := r.Read(encodedByte)
+        fmt.Println(encodedByte)
+
         if (err != nil) {
             return 0, err
         }

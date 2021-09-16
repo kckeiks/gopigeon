@@ -20,6 +20,7 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
+	fmt.Println(b)
 	// fmt.Println("Publish Packet without fixed header:")
     // fmt.Println(hex.Dump(b))
 	pp, err := DecodePublishPacket(b)

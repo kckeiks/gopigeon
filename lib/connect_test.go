@@ -57,6 +57,7 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 
 func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: a ReadWriter implementation like bytes.Buffer or net.Conn
+	// Given: we can read our Connect packet from a ReadWriter 
 	cp := testutils.NewTestEncodedConnectPkt()
 	fh := &FixedHeader{
 		PktType: CONNECT,
