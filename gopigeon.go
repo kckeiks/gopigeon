@@ -45,6 +45,8 @@ func HandleClient(c net.Conn) {
 			cs.ConnectRcvd = true
 		case mqtt.PUBLISH:
 			mqtt.HandlePublish(c, fh)
+		case mqtt.SUBSCRIBE:
+			mqtt.HandleSubscribe(c, fh)
 		case mqtt.DISCONNECT:
 			disconnect = true
         default:

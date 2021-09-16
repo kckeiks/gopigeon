@@ -13,7 +13,7 @@ const (
     CONNECT    = 1
     CONNACK    = 2
     PUBLISH    = 3
-    SUBSCRIBE  = 4
+    SUBSCRIBE  = 8
     DISCONNECT = 14
 )
 
