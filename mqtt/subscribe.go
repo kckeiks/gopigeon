@@ -5,7 +5,15 @@ import (
 	"bytes"
 	"io"
 	"encoding/binary"
+	"sync"
 )
+
+var subscribers = &Subscribers{subscribers: make(map[string][]io.ReadWriter)}
+
+type Subscribers struct {
+	mu sync.Mutex
+	subscribers map[string][]io.ReadWriter // = make(map[string][]io.ReadWriter)
+}
 
 type SubscribePayload struct {
 	TopicFilter string
@@ -49,5 +57,15 @@ func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
 	// fmt.Println(b)
 	sp, err := DecodeSubscribePackage(b)
 	fmt.Printf("Subscribe Package: %+v\n", sp)
+	for _, payload := range sp.Payload {
+		subscribers.addSubscriber(rw, payload.TopicFilter)
+	}
+	fmt.Printf("Subscribers: %+v\n", subscribers)
 	return nil
+}
+
+func (s *Subscribers) addSubscriber(rw io.ReadWriter, topic string) {
+	s.mu.Lock()
+	s.subscribers[topic] = append(s.subscribers[topic], rw)
+	s.mu.Unlock()
 }
