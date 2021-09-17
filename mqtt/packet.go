@@ -42,7 +42,7 @@ type FixedHeader struct {
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
     _, err := io.ReadFull(r, buff)
-    fmt.Println(buff)
+    fmt.Printf("First byte: %d\n", buff)
     if err != nil {
         return nil, err
     }
@@ -62,6 +62,7 @@ func ReadRemLength(r io.Reader) (uint32, error) {
     var val uint = 0
     var maxMulVal uint = 128*128*128
     encodedByte := make([]byte, 1)
+    fmt.Println("EncodedBytes: ")
     for {
         _, err := r.Read(encodedByte)
         fmt.Println(encodedByte)

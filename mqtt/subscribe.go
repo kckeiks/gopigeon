@@ -20,12 +20,12 @@ type SubscribePayload struct {
 	QoS byte
 }
 
-type SubscribePackage struct {
+type SubscribePacket struct {
 	PacketID uint16
 	Payload []SubscribePayload
 }
 
-func DecodeSubscribePackage(b []byte) (*SubscribePackage, error) {
+func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 	buf := bytes.NewBuffer(b)
 	packetId := make([]byte, PACKETID_LEN)
 	_, err := io.ReadFull(buf, packetId)
@@ -45,7 +45,7 @@ func DecodeSubscribePackage(b []byte) (*SubscribePackage, error) {
 		subPayload := SubscribePayload{TopicFilter: filter, QoS: qos}
 		payload = append(payload, subPayload)
 	}
-	return &SubscribePackage{PacketID: binary.BigEndian.Uint16(packetId), Payload: payload}, nil
+	return &SubscribePacket{PacketID: binary.BigEndian.Uint16(packetId), Payload: payload}, nil
 }
 
 func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
@@ -55,12 +55,16 @@ func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
         return err
     }
 	// fmt.Println(b)
-	sp, err := DecodeSubscribePackage(b)
-	fmt.Printf("Subscribe Package: %+v\n", sp)
+	sp, err := DecodeSubscribePacket(b)
+	// fmt.Printf("Subscribe Package: %+v\n", sp)
 	for _, payload := range sp.Payload {
 		subscribers.addSubscriber(rw, payload.TopicFilter)
 	}
-	fmt.Printf("Subscribers: %+v\n", subscribers)
+	// fmt.Printf("Subscribers: %+v\n", subscribers)
+	for _, sub1 := range subscribers.subscribers["testtopic"] {
+		for _, sub2 := range subscribers.subscribers["othertopic"] {
+				fmt.Println(sub1 == sub2)
+		}	}
 	return nil
 }
 

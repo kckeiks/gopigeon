@@ -23,11 +23,11 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 	// fmt.Println(b)
 	// fmt.Println("Publish Packet without fixed header:")
     // fmt.Println(hex.Dump(b))
-	pp, err := DecodePublishPacket(b)
+	_, err = DecodePublishPacket(b)
 	if err != nil {
 		return nil
 	}
-	fmt.Printf("Publish Packet: %+v\n", pp)
+	// fmt.Printf("Publish Packet: %+v\n", pp)
 	return nil
 }
 

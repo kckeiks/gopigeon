@@ -83,6 +83,8 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 
 // TODO: Should it be other interface other than io.Reader? seems to broad
 func HandleConnectPacket(r io.ReadWriter, fh *FixedHeader) error {
+    fmt.Printf("io.ReadWriter %d", r)
+    fmt.Println(r)
     b := make([]byte, fh.RemLength)
     _, err := io.ReadFull(r, b)
     if (err != nil) {
