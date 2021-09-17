@@ -14,6 +14,7 @@ const (
     CONNACK    = 2
     PUBLISH    = 3
     SUBSCRIBE  = 8
+    SUBACK     = 9
     DISCONNECT = 14
 )
 
@@ -79,6 +80,19 @@ func ReadRemLength(r io.Reader) (uint32, error) {
             return uint32(val), nil
         }
     }
+}
+
+func EncodeRemLength(n uint32) []byte {
+    result := make([]byte, 0)
+    for n > 0 {
+        encodedByte := byte(n % 128)
+        n = n / 128
+        if n > 0 {
+            encodedByte = encodedByte | 128
+        }
+        result = append(result, encodedByte)
+    }
+    return result
 }
 
 func IsValidUTF8Encoded(bytes []byte) bool {

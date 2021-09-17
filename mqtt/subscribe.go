@@ -6,6 +6,7 @@ import (
 	"io"
 	"encoding/binary"
 	"sync"
+	"errors"
 )
 
 var subscribers = &Subscribers{subscribers: make(map[string][]io.ReadWriter)}
@@ -64,8 +65,20 @@ func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
 	for _, sub1 := range subscribers.subscribers["testtopic"] {
 		for _, sub2 := range subscribers.subscribers["othertopic"] {
 				fmt.Println(sub1 == sub2)
-		}	}
+		}	
+	}
+	esp := EncodeSubackPacket(sp.PacketID)
+	rw.Write(esp)	
 	return nil
+}
+
+func EncodeSubackPacket(pktID uint16) []byte {
+    var pktType byte = SUBACK << 4
+	var remLength byte = 2
+	fixedHeader := []byte{pktType, remLength}
+	pID := make([]byte, 2)
+	binary.BigEndian.PutUint16(pID, pktID)
+	return append(fixedHeader, pID...)
 }
 
 func (s *Subscribers) addSubscriber(rw io.ReadWriter, topic string) {
@@ -73,3 +86,13 @@ func (s *Subscribers) addSubscriber(rw io.ReadWriter, topic string) {
 	s.subscribers[topic] = append(s.subscribers[topic], rw)
 	s.mu.Unlock()
 }
+
+func (s *Subscribers) getSubscribers(topic string) ([]io.ReadWriter, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	subs, ok := s.subscribers[topic]
+	if ok {
+		return subs, nil
+	}
+	return nil, errors.New("NA_TOPIC")
+} 
