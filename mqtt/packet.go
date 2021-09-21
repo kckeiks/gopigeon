@@ -13,6 +13,8 @@ const (
     CONNECT    = 1
     CONNACK    = 2
     PUBLISH    = 3
+    SUBSCRIBE  = 8
+    SUBACK     = 9
     DISCONNECT = 14
 )
 
@@ -41,7 +43,7 @@ type FixedHeader struct {
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
     _, err := io.ReadFull(r, buff)
-    fmt.Println(buff)
+    fmt.Printf("First byte: %d\n", buff)
     if err != nil {
         return nil, err
     }
@@ -61,6 +63,7 @@ func ReadRemLength(r io.Reader) (uint32, error) {
     var val uint = 0
     var maxMulVal uint = 128*128*128
     encodedByte := make([]byte, 1)
+    fmt.Println("EncodedBytes: ")
     for {
         _, err := r.Read(encodedByte)
         fmt.Println(encodedByte)
@@ -77,6 +80,19 @@ func ReadRemLength(r io.Reader) (uint32, error) {
             return uint32(val), nil
         }
     }
+}
+
+func EncodeRemLength(n uint32) []byte {
+    result := make([]byte, 0)
+    for n > 0 {
+        encodedByte := byte(n % 128)
+        n = n / 128
+        if n > 0 {
+            encodedByte = encodedByte | 128
+        }
+        result = append(result, encodedByte)
+    }
+    return result
 }
 
 func IsValidUTF8Encoded(bytes []byte) bool {

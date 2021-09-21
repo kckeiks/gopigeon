@@ -24,6 +24,8 @@ func ListenAndServe() {
 
 func HandleClient(c net.Conn) {
 	defer c.Close()
+	fmt.Printf("net.Conn %d", c)
+	fmt.Println(c)
 	cs := mqtt.ClientSession{}
 	disconnect := false
 	for !disconnect {
@@ -45,6 +47,8 @@ func HandleClient(c net.Conn) {
 			cs.ConnectRcvd = true
 		case mqtt.PUBLISH:
 			mqtt.HandlePublish(c, fh)
+		case mqtt.SUBSCRIBE:
+			mqtt.HandleSubscribe(c, fh)
 		case mqtt.DISCONNECT:
 			disconnect = true
         default:
