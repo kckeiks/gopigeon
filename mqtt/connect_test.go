@@ -4,28 +4,22 @@ import (
 	"bytes"
 	"reflect"
 	"testing"
-	"fmt"
 )
 
 func TestDecodeConnectPacketSuccess(t *testing.T) {
 	// Given: a stream/slice of bytes that represents a connect pkt
-	cp := newTestEncodedConnectPkt()
+	expectedResult := &ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4,
+		cleanSession:1,
+		keepAlive: []byte{0, 0},
+	}
+	cp := decodeTestConnectPkt(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodeConnectPacket(cp[2:])
-	fmt.Println(result)
+	// fmt.Println(result)
 	// Then: we get a connect packet struct with the right values
-	expectedResult := &ConnectPacket{
-		protocolName:"MQTT",
-		protocolLevel:4, 
-		userNameFlag:0, 
-		psswdFlag:0, 
-		willRetainFlag:0, 
-		willQoSFlag:0, 
-		willFlag:0, 
-		cleanSession:1, 
-		keepAlive:[]byte{0, 60},
-	}
 	if err != nil {
 		t.Fatalf("DecodeConnectPacket failed with err %d", err)
 	}
@@ -53,13 +47,18 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: a ReadWriter implementation like bytes.Buffer or net.Conn
 	// Given: we can read our Connect packet from a ReadWriter 
-	cp := newTestEncodedConnectPkt()
+	cp := decodeTestConnectPkt(&ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4,
+		cleanSession:1,
+		keepAlive: make([]byte, 2),
+	})
 	fh := &FixedHeader{
 		PktType: CONNECT,
 		Flags: 0, 
 		RemLength: 12,
 	}
-	// without header
+	// ReadWriter without header
 	rr := bytes.NewBuffer(cp[2:]) 
 	// When: we handle a connnect packet and pass the ReadWriter
 	HandleConnect(rr, fh)
