@@ -4,8 +4,7 @@ import (
 	"io"
 	"fmt"
 	"bytes"
-	// "encoding/binary"
-	// "encoding/hex"
+	"encoding/hex"
 )
 
 type PublishPacket struct {
@@ -20,22 +19,22 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-	// fmt.Println(b)
-	// fmt.Println("Publish Packet without fixed header:")
-    // fmt.Println(hex.Dump(b))
+	fmt.Printf("Publish Packet without fixed header: %v\n", hex.Dump(b))
 	pp, err := DecodePublishPacket(b)
 	if err != nil {
-		return nil
+		return err
 	}
 	ep := EncodePublishPacket(*fh, b)
-	// fmt.Printf("Publish Packet: %+v\n", ep)
+	fmt.Printf("Publish Packet: %+v\n", ep)
 	subs, err := subscribers.getSubscribers(pp.Topic)
 	if err != nil {
 		return err
 	}
 	for _, s := range subs {
-		// fmt.Printf("Writting [%s] to.... %+v\n", pp.Payload, s)
-		s.Write(ep)
+		_, err = s.Write(ep)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
