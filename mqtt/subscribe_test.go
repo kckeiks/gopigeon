@@ -8,10 +8,6 @@ import (
 	"encoding/binary"
 )
 
-func NewTestEncodedSubscribePkt() []byte {
-	return []byte{130, 14, 0, 1, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 0}
-}
-
 func addTestSubscriber(topic string) io.ReadWriter {
 	sub := bytes.NewBuffer([]byte{})
 	subscribers = &Subscribers{subscribers: make(map[string][]io.ReadWriter)}

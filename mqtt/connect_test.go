@@ -7,10 +7,6 @@ import (
 	"fmt"
 )
 
-func NewTestEncodedConnackPkt() []byte {
-	return []byte{32, 2, 0, 0}
-}
-
 func TestDecodeConnectPacketSuccess(t *testing.T) {
 	// Given: a stream/slice of bytes that represents a connect pkt
 	cp := newTestEncodedConnectPkt()

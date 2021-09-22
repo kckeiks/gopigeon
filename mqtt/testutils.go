@@ -19,3 +19,15 @@ func newTestReadWriterConnect() io.ReadWriter {
 	cp = append(cp, newTestEncodedConnectPkt()[2:]...)
 	return bytes.NewBuffer(cp)
 }
+
+func NewTestEncodedConnackPkt() []byte {
+	return []byte{32, 2, 0, 0}
+}
+
+func NewTestEncodedPublishPkt() []byte {
+	return []byte{48, 18, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 116, 101, 115, 116, 109, 115, 103}
+}
+
+func NewTestEncodedSubscribePkt() []byte {
+	return []byte{130, 14, 0, 1, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 0}
+}
