@@ -36,7 +36,7 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         return nil, err
     }
     // TODO: validate protocol name
-    if (len(protocol) != PROTOCOL_NAME_LEN) {
+    if protocol != PROTOCOL_NAME {
         return nil, ProtocolNameError
     }
     protocolLevel, err := buf.ReadByte()
