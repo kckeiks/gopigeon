@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"io"
 	"encoding/binary"
+	"encoding/hex"
 	"sync"
 	"errors"
 )
@@ -55,20 +56,22 @@ func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-	// fmt.Println(b)
+	fmt.Printf("Subscribe Packet without fixed header: %v\n", hex.Dump(b))
 	sp, err := DecodeSubscribePacket(b)
-	// fmt.Printf("Subscribe Package: %+v\n", sp)
+	fmt.Printf("Subscribe Package: %+v\n", sp)
 	for _, payload := range sp.Payload {
 		subscribers.addSubscriber(rw, payload.TopicFilter)
 	}
-	// fmt.Printf("Subscribers: %+v\n", subscribers)
 	for _, sub1 := range subscribers.subscribers["testtopic"] {
 		for _, sub2 := range subscribers.subscribers["othertopic"] {
 				fmt.Println(sub1 == sub2)
 		}	
 	}
 	esp := EncodeSubackPacket(sp.PacketID)
-	rw.Write(esp)	
+	_, err = rw.Write(esp)	
+	if (err != nil) {
+        return err
+    }
 	return nil
 }
 
