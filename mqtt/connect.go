@@ -35,7 +35,6 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if err != nil {
         return nil, err
     }
-    // TODO: validate protocol name
     if protocol != PROTOCOL_NAME {
         return nil, ProtocolNameError
     }
