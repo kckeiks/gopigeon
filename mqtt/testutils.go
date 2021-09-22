@@ -2,6 +2,7 @@ package mqtt
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
 )
 
@@ -9,21 +10,39 @@ func newTestEncodedFixedHeader() io.ReadWriter {
 	return bytes.NewBuffer([]byte{16, 12, 0, 4})
 }
 
-// TODO: Maybe refactor this so it looks better
-func newTestEncodedConnectPkt() []byte {
-	return []byte{16, 12, 0, 4, 77, 81, 84, 84, 4, 2, 0, 60, 0, 0}
+func newTestEncodedConnectPkt() (*ConnectPacket, []byte) {
+	cp := &ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4, 
+		userNameFlag:0, 
+		psswdFlag:0, 
+		willRetainFlag:0, 
+		willQoSFlag:0, 
+		willFlag:0, 
+		cleanSession:1, 
+		keepAlive:[]byte{0, 0},
+	}
+	return cp, decodeTestConnectPkt(cp)
 }
 
-func newTestReadWriterConnect() io.ReadWriter {
-	cp := make([]byte, 0)
-	cp = append(cp, newTestEncodedConnectPkt()[2:]...)
-	return bytes.NewBuffer(cp)
+func decodeTestConnectPkt(cp *ConnectPacket) []byte {
+	pn := []byte(cp.protocolName)
+	var pnLen = [2]byte{}
+	binary.BigEndian.PutUint16(pnLen[:], uint16(len(pn)))
+	connect := []byte{16, 12}
+	connect = append(connect, pnLen[:]...)  // add protocol name
+	connect = append(connect, pn...)  // add protocol name
+	connect = append(connect, cp.protocolLevel)
+	connect = append(connect, 2) // TODO: connect flags
+	connect = append(connect, 0, 0,) // TODO: Keep Alive
+	return append(connect, 0, 0) // TODO: Payload
 }
 
 func NewTestEncodedConnackPkt() []byte {
 	return []byte{32, 2, 0, 0}
 }
 
+// TODO: Maybe refactor these to be more configurable
 func NewTestEncodedPublishPkt() []byte {
 	return []byte{48, 18, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 116, 101, 115, 116, 109, 115, 103}
 }
