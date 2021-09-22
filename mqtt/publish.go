@@ -9,7 +9,7 @@ import (
 
 type PublishPacket struct {
 	Topic string
-	PacketId uint16
+	PacketID uint16
 	Payload []byte
 }
 
@@ -64,6 +64,6 @@ func EncodePublishPacket(fh FixedHeader, p []byte) []byte {
 }
 
 func (p *PublishPacket) String() string {
-	return fmt.Sprintf("&PublishPacket{Topic: %s, PacketID: %d, Payload: %s}\n", p.Topic, p.PacketId, string(p.Payload))
+	return fmt.Sprintf("&PublishPacket{Topic: %s, PacketID: %d, Payload: %s}\n", p.Topic, p.PacketID, string(p.Payload))
 }
 
