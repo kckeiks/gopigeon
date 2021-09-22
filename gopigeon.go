@@ -42,7 +42,7 @@ func HandleClient(c net.Conn) {
 			break
 		}
 		switch fh.PktType {
-        case mqtt.CONNECT:
+		case mqtt.CONNECT:
 			mqtt.HandleConnect(c, fh)
 			cs.ConnectRcvd = true
 		case mqtt.PUBLISH:
@@ -51,7 +51,7 @@ func HandleClient(c net.Conn) {
 			mqtt.HandleSubscribe(c, fh)
 		case mqtt.DISCONNECT:
 			disconnect = true
-        default:
+		default:
 			panic("Unknown Control Packet!")
     	}
 	}
