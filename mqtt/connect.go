@@ -2,10 +2,9 @@ package mqtt
 
 import (
     "bytes"
-    //"encoding/hex"
+    "encoding/hex"
     "fmt"
     "io"
-    "errors"
 )
 
 const (   
@@ -38,11 +37,11 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     }
     // TODO: validate protocol name
     if (len(protocol) != PROTOCOL_NAME_LEN) {
-        return nil, errors.New("")
+        return nil, ProtocolNameError
     }
     protocolLevel, err := buf.ReadByte()
     if (err != nil || protocolLevel != PROTOCOL_LEVEL) {
-        return nil, err
+        return nil, ProtocolLevelError
     }
     connectFlags, err := buf.ReadByte()
     if (err != nil) {
@@ -53,7 +52,6 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if (err != nil) {
         return nil, err
     }
-    // payload := buf.Bytes()
     cp := &ConnectPacket{
         protocolName: protocol, 
         protocolLevel: protocolLevel,
@@ -65,11 +63,6 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         cleanSession: connectFlags >> 1,
         keepAlive: keepAlive,    
     }
-    // fmt.Println("Connect flags:")
-    // fmt.Printf("% 08b\n", connectFlags)
-    // fmt.Println("Payload:")
-    // fmt.Println(len(payload))
-    // fmt.Println(hex.Dump(payload))
     return cp, nil
 }
 
@@ -82,32 +75,27 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 // TODO: Should it be other interface other than io.Reader? seems to broad
-func HandleConnectPacket(r io.ReadWriter, fh *FixedHeader) error {
-    fmt.Printf("io.ReadWriter %d", r)
-    fmt.Println(r)
+func HandleConnect(r io.ReadWriter, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
     _, err := io.ReadFull(r, b)
     if (err != nil) {
         return err
     }
-    // fmt.Println("Packet without fixed header:")
-    // fmt.Println(hex.Dump(b))
+    fmt.Printf("Packet without fixed header: %v\n", hex.Dump(b))
     cp, err := DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
-    fmt.Printf("Connect Packet: %+v\n", cp)
+    fmt.Printf("Decoded Connect Packet: %+v\n", cp)
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,
     }
 
     rawConnackPkt := EncodeConnackPacket(connackPkt)
-    // fmt.Println("Connack Packet:")
-    // fmt.Printf("%+v\n", connackPkt)
-    // fmt.Println("Raw Connack Packet:")
-    // fmt.Println(rawConnackPkt)
-    r.Write(rawConnackPkt)
-    
+    _, err = r.Write(rawConnackPkt)
+    if (err != nil) {
+        return err
+    }
     return nil
 }

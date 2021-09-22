@@ -7,10 +7,6 @@ import (
 	"testing"
 )
 
-func NewTestEncodedPublishPkt() []byte {
-	return []byte{48, 18, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 116, 101, 115, 116, 109, 115, 103}
-}
-
 func TestDecodePublishPacket(t *testing.T) {
 	// Given: a stream/slice of bytes that represents a connect pkt
 	cp := NewTestEncodedPublishPkt()
