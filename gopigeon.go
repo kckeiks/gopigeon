@@ -43,7 +43,7 @@ func HandleClient(c net.Conn) {
 		}
 		switch fh.PktType {
         case mqtt.CONNECT:
-			mqtt.HandleConnectPacket(c, fh)
+			mqtt.HandleConnect(c, fh)
 			cs.ConnectRcvd = true
 		case mqtt.PUBLISH:
 			mqtt.HandlePublish(c, fh)

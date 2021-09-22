@@ -66,7 +66,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 	// without header
 	rr := bytes.NewBuffer(cp[2:]) 
 	// When: we handle a connnect packet and pass the ReadWriter
-	HandleConnectPacket(rr, fh)
+	HandleConnect(rr, fh)
 	// Then: the ReadWriter will have the Connack pkt representation in bytes
 	expectedResult := bytes.NewBuffer(NewTestEncodedConnackPkt())
 	if !reflect.DeepEqual(rr, expectedResult) {
