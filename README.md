@@ -6,7 +6,7 @@ GoPigeon is a MQTT broker implementation in Go.
 
 GoPigeon implements the [MQTT 3.1.1.](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html) specification and its `mqtt` package provides some reusable solutions for encoding/decoding and control packet handling.
 
-## Project Progress
+## Work In Progress
 
 The implementation of the specification is tracked via issues. The project is in the earliest stages and is currently being developed. At the moment, the broker can keep a table of subscribers and publish messages.
 
