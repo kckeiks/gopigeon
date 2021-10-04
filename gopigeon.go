@@ -8,8 +8,6 @@ import (
 
 func ListenAndServe() {
 	ln, err := net.Listen("tcp", ":8080")
-	fmt.Println("HUH0?")
-
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
@@ -17,7 +15,6 @@ func ListenAndServe() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			fmt.Println("HUH1?")
 			continue
 		}
 		go HandleConn(conn)
