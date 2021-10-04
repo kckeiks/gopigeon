@@ -20,7 +20,6 @@ func ListenAndServe() {
 
 func HandleConn(c net.Conn) error {
 	defer c.Close()
-	disconnect := false
 	fh, err := ReadFixedHeader(c)
 	if err != nil {
 		fmt.Println(err)
@@ -31,9 +30,8 @@ func HandleConn(c net.Conn) error {
 		return ExpectingConnectPktError
 	}	
 	HandleConnect(c, fh)
-	for !disconnect {
+	for {
 		fh, err := ReadFixedHeader(c)
-		// maybe use a switch here or use et method
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -43,10 +41,10 @@ func HandleConn(c net.Conn) error {
 			err = HandlePublish(c, fh)
 		case SUBSCRIBE:
 			err = HandleSubscribe(c, fh)
-		case DISCONNECT:
-			disconnect = true
 		case CONNECT:
 			err = SecondConnectPktError
+		case DISCONNECT:
+			return nil
 		default:
 			fmt.Println("warning: unknonw packet")
     	}
