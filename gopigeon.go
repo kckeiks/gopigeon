@@ -48,7 +48,7 @@ func HandleConn(c net.Conn) error {
 		case CONNECT:
 			err = SecondConnectPktError
 		default:
-			err = UnknownPktError
+			fmt.Println("warning: unknonw packet")
     	}
 		if err != nil {
 			fmt.Println(err)
