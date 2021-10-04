@@ -1,9 +1,7 @@
-package mqtt
+package gopigeon
 
 import (
     "bytes"
-    "encoding/hex"
-    "fmt"
     "io"
 )
 
@@ -80,12 +78,10 @@ func HandleConnect(r io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-    fmt.Printf("Packet without fixed header: %v\n", hex.Dump(b))
-    cp, err := DecodeConnectPacket(b)
+    _, err = DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
-    fmt.Printf("Decoded Connect Packet: %+v\n", cp)
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,

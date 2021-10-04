@@ -1,4 +1,4 @@
-package mqtt
+package gopigeon
 
 import (
 	"bytes"
@@ -26,6 +26,7 @@ func newTestEncodedConnectPkt() (*ConnectPacket, []byte) {
 }
 
 func decodeTestConnectPkt(cp *ConnectPacket) []byte {
+	// TODO: this should include header
 	pn := []byte(cp.protocolName)
 	var pnLen = [2]byte{}
 	binary.BigEndian.PutUint16(pnLen[:], uint16(len(pn)))

@@ -1,4 +1,4 @@
-package mqtt
+package gopigeon
 
 import (
 	"bytes"

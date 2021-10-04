@@ -1,4 +1,4 @@
-package mqtt
+package gopigeon
 
 import (
     "errors"
@@ -6,7 +6,6 @@ import (
     "encoding/binary"
     "unicode/utf8"
     "unicode"
-    "fmt"
 )
 
 const (
@@ -30,10 +29,6 @@ const (
     STRLEN_LEN = 2
 )
 
-type ClientSession struct {
-    ConnectRcvd bool
-}
-
 type FixedHeader struct {
     PktType byte
     Flags byte
@@ -43,13 +38,11 @@ type FixedHeader struct {
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
     buff := make([]byte, 1)
     _, err := io.ReadFull(r, buff)
-    fmt.Printf("First byte: %d\n", buff)
     if err != nil {
         return nil, err
     }
     flags := buff[0] & LSNIBBLE_MASK 
     pktType := buff[0] >> 4
-
     remLength, err := ReadRemLength(r)
     if err != nil {
         return nil, err
@@ -63,11 +56,8 @@ func ReadRemLength(r io.Reader) (uint32, error) {
     var val uint = 0
     var maxMulVal uint = 128*128*128
     encodedByte := make([]byte, 1)
-    fmt.Println("EncodedBytes: ")
     for {
         _, err := r.Read(encodedByte)
-        fmt.Println(encodedByte)
-
         if (err != nil) {
             return 0, err
         }
