@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"github.com/kckeiks/gopigeon/mqtt"
 )
 
 func ListenAndServe() {
@@ -13,8 +12,6 @@ func ListenAndServe() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			// maybe log
-			// return CONNACK with error but cant send that if we dont have a conn duh
 			continue
 		}
 		go HandleConn(conn)
@@ -24,40 +21,34 @@ func ListenAndServe() {
 func HandleConn(c net.Conn) error {
 	defer c.Close()
 	disconnect := false
-	fh, err := mqtt.ReadFixedHeader(c)
+	fh, err := ReadFixedHeader(c)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	
-	if fh.PktType != mqtt.CONNECT {
-		fmt.Println(mqtt.ExpectingConnectPktError)
-		return mqtt.ExpectingConnectPktError
+	if fh.PktType != CONNECT {
+		fmt.Println(ExpectingConnectPktError)
+		return ExpectingConnectPktError
 	}	
-
-	mqtt.HandleConnect(c, fh)
-
+	HandleConnect(c, fh)
 	for !disconnect {
-		fh, err := mqtt.ReadFixedHeader(c)
+		fh, err := ReadFixedHeader(c)
 		// maybe use a switch here or use et method
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}	
 		switch fh.PktType {
-		case mqtt.PUBLISH:
-			err = mqtt.HandlePublish(c, fh)
-		case mqtt.SUBSCRIBE:
-			err = mqtt.HandleSubscribe(c, fh)
-		case mqtt.DISCONNECT:
+		case PUBLISH:
+			err = HandlePublish(c, fh)
+		case SUBSCRIBE:
+			err = HandleSubscribe(c, fh)
+		case DISCONNECT:
 			disconnect = true
-		case mqtt.CONNECT:
-			// another connect packet was received
-			fmt.Println(mqtt.SecondConnectPktError)
-			return mqtt.SecondConnectPktError
+		case CONNECT:
+			err = SecondConnectPktError
 		default:
-			fmt.Println(mqtt.UnknownPktError)
-			return mqtt.UnknownPktError
+			err = UnknownPktError
     	}
 		if err != nil {
 			fmt.Println(err)
