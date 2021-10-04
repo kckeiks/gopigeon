@@ -29,6 +29,8 @@ const (
     StrlenLen       = 2
 )
 
+var clientIDSet map[string]int 
+
 type FixedHeader struct {
     PktType byte
     Flags byte

@@ -23,6 +23,7 @@ func ListenAndServe() {
 
 func HandleConn(c net.Conn) error {
 	defer c.Close()
+	connection := &Connection{Conn: c}
 	fh, err := ReadFixedHeader(c)
 	fmt.Printf("Fixed Header: %+v\n", fh)
 	if err != nil {
@@ -33,7 +34,11 @@ func HandleConn(c net.Conn) error {
 		fmt.Println(ExpectingConnectPktError)
 		return ExpectingConnectPktError
 	}	
-	HandleConnect(c, fh)
+	err = HandleConnect(connection, fh)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 	for {
 		fh, err := ReadFixedHeader(c)
 		fmt.Printf("Fixed Header: %+v\n", fh)

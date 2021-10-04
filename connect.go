@@ -10,7 +10,18 @@ const (
     KeepAliveFieldLen = 2
 )
 
+type MQTTConnReadWritter interface {
+    io.ReadWriter
+}
+
+type Connection struct {
+    Conn io.ReadWriter
+    Cp *ConnectPacket
+    Topics []string
+}
+
 type ConnectPacket struct {
+    clientID string
     protocolName string
     protocolLevel byte
     userNameFlag byte
@@ -49,7 +60,12 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if (err != nil) {
         return nil, err
     }
+    clientID, err := ReadEncodedStr(buf)
+    if err != nil {
+        return nil, err
+    }
     cp := &ConnectPacket{
+        clientID: clientID,
         protocolName: protocol, 
         protocolLevel: protocolLevel,
         userNameFlag: connectFlags >> 7,
@@ -72,23 +88,24 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 // TODO: Should it be other interface other than io.Reader? seems to broad
-func HandleConnect(r io.ReadWriter, fh *FixedHeader) error {
+func HandleConnect(c *Connection, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
-    _, err := io.ReadFull(r, b)
+    _, err := io.ReadFull(c.Conn, b)
     if (err != nil) {
         return err
     }
-    _, err = DecodeConnectPacket(b)
+    cp, err := DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
+    c.Cp = cp
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,
     }
 
     rawConnackPkt := EncodeConnackPacket(connackPkt)
-    _, err = r.Write(rawConnackPkt)
+    _, err = c.Conn.Write(rawConnackPkt)
     if (err != nil) {
         return err
     }
