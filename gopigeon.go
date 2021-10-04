@@ -21,47 +21,50 @@ func ListenAndServe() {
 	}
 }
 
-func HandleConn(c net.Conn) {
+func HandleConn(c net.Conn) error {
 	defer c.Close()
 	disconnect := false
 	fh, err := mqtt.ReadFixedHeader(c)
 	if err != nil {
-		fmt.Println("error: reading fixed header")
-		return
+		fmt.Println(err)
+		return err
 	}
 	
 	if fh.PktType != mqtt.CONNECT {
-		// first pkt was not connect
-		fmt.Println("error: first pkt was not CONNECT")
-		return 
+		fmt.Println(mqtt.ExpectingConnectPktError)
+		return mqtt.ExpectingConnectPktError
 	}	
 
 	mqtt.HandleConnect(c, fh)
 
 	for !disconnect {
 		fh, err := mqtt.ReadFixedHeader(c)
-		fmt.Printf("FixedHeader: %+v\n", fh)
 		// maybe use a switch here or use et method
 		if err != nil {
-			fmt.Println("error: reading fixed header")
-			return
+			fmt.Println(err)
+			return err
 		}	
 		switch fh.PktType {
 		case mqtt.PUBLISH:
-			mqtt.HandlePublish(c, fh)
+			err = mqtt.HandlePublish(c, fh)
 		case mqtt.SUBSCRIBE:
-			mqtt.HandleSubscribe(c, fh)
+			err = mqtt.HandleSubscribe(c, fh)
 		case mqtt.DISCONNECT:
 			disconnect = true
 		case mqtt.CONNECT:
 			// another connect packet was received
-			fmt.Println("error: a second CONNECT was received")
-			break
+			fmt.Println(mqtt.SecondConnectPktError)
+			return mqtt.SecondConnectPktError
 		default:
-			fmt.Println("error: unknown packet.")
-			break
+			fmt.Println(mqtt.UnknownPktError)
+			return mqtt.UnknownPktError
     	}
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 	}
+	return nil
 }
 
 
