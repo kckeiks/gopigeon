@@ -98,7 +98,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 		keepAlive: make([]byte, 2),
 	})
 	fh := &FixedHeader{
-		PktType: CONNECT,
+		PktType: Connect,
 		Flags: 0, 
 		RemLength: 12,
 	}

@@ -33,7 +33,7 @@ func TestHandlePublish(t *testing.T) {
 	// Given: we can read our Connect packet from a ReadWriter 
 	cp := NewTestEncodedPublishPkt()
 	fh := &FixedHeader{
-		PktType: PUBLISH,
+		PktType: Publish,
 		Flags: 0, 
 		RemLength: 18,
 	}

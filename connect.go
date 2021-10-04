@@ -6,8 +6,8 @@ import (
 )
 
 const (   
-    PROTOCOL_LEVEL = 4
-    KEEP_ALIVE_FIELD_LEN = 2
+    ProtocolLevel = 4
+    KeepAliveFieldLen = 2
 )
 
 type ConnectPacket struct {
@@ -33,18 +33,18 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if err != nil {
         return nil, err
     }
-    if protocol != PROTOCOL_NAME {
+    if protocol != ProtocolName {
         return nil, ProtocolNameError
     }
     protocolLevel, err := buf.ReadByte()
-    if (err != nil || protocolLevel != PROTOCOL_LEVEL) {
+    if (err != nil || protocolLevel != ProtocolLevel) {
         return nil, ProtocolLevelError
     }
     connectFlags, err := buf.ReadByte()
     if (err != nil) {
         return nil, err
     }
-    keepAlive := make([]byte, KEEP_ALIVE_FIELD_LEN)
+    keepAlive := make([]byte, KeepAliveFieldLen)
     _, err = io.ReadFull(buf, keepAlive)
     if (err != nil) {
         return nil, err
@@ -65,7 +65,7 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
 
 func EncodeConnackPacket(p ConnackPacket) []byte {
     var cp = []byte{p.AckFlags, p.RtrnCode}
-    var pktType byte = CONNACK << 4
+    var pktType byte = Connack << 4
     var remLength byte = 2
     fixedHeader := []byte{pktType, remLength}
     return append(fixedHeader, cp...)

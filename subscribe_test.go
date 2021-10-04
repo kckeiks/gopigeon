@@ -37,7 +37,7 @@ func TestHandleSubscribeSuccess(t *testing.T) {
 	// Given: a connection/ReaderWriter with which we will be able to read a subscribe package
 	sp := NewTestEncodedSubscribePkt()
 	fh := &FixedHeader{
-		PktType: SUBSCRIBE,
+		PktType: Subscribe,
 		Flags: 2, 
 		RemLength: 14,
 	}
