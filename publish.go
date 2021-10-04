@@ -4,7 +4,6 @@ import (
 	"io"
 	"fmt"
 	"bytes"
-	"encoding/hex"
 )
 
 type PublishPacket struct {
@@ -19,13 +18,11 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-	fmt.Printf("Publish Packet without fixed header: %v\n", hex.Dump(b))
 	pp, err := DecodePublishPacket(b)
 	if err != nil {
 		return err
 	}
 	ep := EncodePublishPacket(*fh, b)
-	fmt.Printf("Publish Packet: %+v\n", ep)
 	subs, err := subscribers.getSubscribers(pp.Topic)
 	if err != nil {
 		return err
