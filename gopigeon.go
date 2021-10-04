@@ -8,6 +8,8 @@ import (
 
 func ListenAndServe() {
 	ln, err := net.Listen("tcp", ":8080")
+	fmt.Println("HUH0?")
+
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
@@ -15,6 +17,7 @@ func ListenAndServe() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
+			fmt.Println("HUH1?")
 			continue
 		}
 		go HandleConn(conn)
@@ -24,29 +27,31 @@ func ListenAndServe() {
 func HandleConn(c net.Conn) error {
 	defer c.Close()
 	fh, err := ReadFixedHeader(c)
+	fmt.Printf("Fixed Header: %+v\n", fh)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	if fh.PktType != CONNECT {
+	if fh.PktType != Connect {
 		fmt.Println(ExpectingConnectPktError)
 		return ExpectingConnectPktError
 	}	
 	HandleConnect(c, fh)
 	for {
 		fh, err := ReadFixedHeader(c)
+		fmt.Printf("Fixed Header: %+v\n", fh)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}	
 		switch fh.PktType {
-		case PUBLISH:
+		case Publish:
 			err = HandlePublish(c, fh)
-		case SUBSCRIBE:
+		case Subscribe:
 			err = HandleSubscribe(c, fh)
-		case CONNECT:
+		case Connect:
 			err = SecondConnectPktError
-		case DISCONNECT:
+		case Disconnect:
 			return nil
 		default:
 			fmt.Println("warning: unknonw packet")

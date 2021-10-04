@@ -27,10 +27,11 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 	if err != nil {
 		return err
 	}
+	// TODO: if one write op goes wrong, it should not stop us from trying the rest
 	for _, s := range subs {
 		_, err = s.Write(ep)
 		if err != nil {
-			return err
+			fmt.Printf("publishing error: %s\n", err.Error())
 		}
 	}
 	return nil
@@ -44,7 +45,7 @@ func DecodePublishPacket(b []byte) (*PublishPacket, error) {
         return nil, err
     }
 	// Note: When QoS is 0 there is no packet id
-	payloadLen := pktLen - (STRLEN_LEN + len(topic))
+	payloadLen := pktLen - (StrlenLen + len(topic))
 	payload := make([]byte, payloadLen)
 	_, err = io.ReadFull(buf, payload)
 	if err != nil {
@@ -54,7 +55,7 @@ func DecodePublishPacket(b []byte) (*PublishPacket, error) {
 }
 
 func EncodePublishPacket(fh FixedHeader, p []byte) []byte {
-    var pktType byte = PUBLISH << 4
+    var pktType byte = Publish << 4
     fixedHeader := []byte{pktType}
 	fixedHeader = append(fixedHeader, EncodeRemLength(fh.RemLength)...)
     return append(fixedHeader, p...)

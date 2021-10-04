@@ -27,7 +27,7 @@ type SubscribePacket struct {
 
 func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 	buf := bytes.NewBuffer(b)
-	packetId := make([]byte, PACKETID_LEN)
+	packetId := make([]byte, PacketIDLen)
 	_, err := io.ReadFull(buf, packetId)
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
 }
 
 func EncodeSubackPacket(pktID uint16) []byte {
-    var pktType byte = SUBACK << 4
+    var pktType byte = Suback << 4
 	var remLength byte = 2
 	fixedHeader := []byte{pktType, remLength}
 	pID := make([]byte, 2)
