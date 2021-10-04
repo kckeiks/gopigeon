@@ -5,7 +5,6 @@ import (
 	"net"
 	"os"
 	"github.com/kckeiks/gopigeon/mqtt"
-	"io"
 )
 
 func ListenAndServe() {
@@ -18,41 +17,49 @@ func ListenAndServe() {
 			// return CONNACK with error but cant send that if we dont have a conn duh
 			continue
 		}
-		go HandleClient(conn)
+		go HandleConn(conn)
 	}
 }
 
-func HandleClient(c net.Conn) {
+func HandleConn(c net.Conn) {
 	defer c.Close()
-	fmt.Printf("net.Conn %d", c)
-	fmt.Println(c)
-	cs := mqtt.ClientSession{}
 	disconnect := false
+	fh, err := mqtt.ReadFixedHeader(c)
+	if err != nil {
+		fmt.Println("error: reading fixed header")
+		return
+	}
+	
+	if fh.PktType != mqtt.CONNECT {
+		// first pkt was not connect
+		fmt.Println("error: first pkt was not CONNECT")
+		return 
+	}	
+
+	mqtt.HandleConnect(c, fh)
+
 	for !disconnect {
 		fh, err := mqtt.ReadFixedHeader(c)
+		fmt.Printf("FixedHeader: %+v\n", fh)
 		// maybe use a switch here or use et method
 		if err != nil {
-			if err != io.EOF {
-				panic(err.Error())
-			}
-			break
-		}
-		fmt.Printf("Package fixed-header received: %+v\n", fh)
-		if cs.ConnectRcvd && fh.PktType == mqtt.CONNECT {
-			break
-		}
+			fmt.Println("error: reading fixed header")
+			return
+		}	
 		switch fh.PktType {
-		case mqtt.CONNECT:
-			mqtt.HandleConnect(c, fh)
-			cs.ConnectRcvd = true
 		case mqtt.PUBLISH:
 			mqtt.HandlePublish(c, fh)
 		case mqtt.SUBSCRIBE:
 			mqtt.HandleSubscribe(c, fh)
 		case mqtt.DISCONNECT:
 			disconnect = true
+		case mqtt.CONNECT:
+			// another connect packet was received
+			fmt.Println("error: a second CONNECT was received")
+			break
 		default:
-			panic("Unknown Control Packet!")
+			fmt.Println("error: unknown packet.")
+			break
     	}
 	}
 }
