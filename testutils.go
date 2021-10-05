@@ -6,6 +6,12 @@ import (
 	"io"
 )
 
+func newTestMQTTConn(b []byte) MQTTConn {
+	return MQTTConn{
+		Conn: bytes.NewBuffer(b),
+	}
+}
+
 func newTestEncodedFixedHeader() io.ReadWriter {
 	return bytes.NewBuffer([]byte{16, 12, 0, 4})
 }

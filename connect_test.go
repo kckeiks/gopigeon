@@ -13,6 +13,7 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 		protocolLevel:4,
 		cleanSession:1,
 		keepAlive: []byte{0, 0},
+		payload: []byte{0, 0},
 	}
 	cp := decodeTestConnectPkt(expectedResult)
 	// When: we try to decoded it
@@ -102,13 +103,13 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 		Flags: 0, 
 		RemLength: 12,
 	}
-	// ReadWriter without header
-	rr := bytes.NewBuffer(cp[2:]) 
-	// When: we handle a connnect packet and pass the ReadWriter
-	HandleConnect(rr, fh)
-	// Then: the ReadWriter will have the Connack pkt representation in bytes
+	// Given: mqtt connection that has the pkt in its buffer
+	conn := newTestMQTTConn(cp[2:])
+	// When: we handle a connnect packet
+	HandleConnect(&conn, fh)
+	// Then: the connection will have the Connack pkt representation in bytes
 	expectedResult := bytes.NewBuffer(NewTestEncodedConnackPkt())
-	if !reflect.DeepEqual(rr, expectedResult) {
-		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", rr, expectedResult)
+	if !reflect.DeepEqual(conn.Conn, expectedResult) {
+		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", conn.Conn, expectedResult)
 	}
 }

@@ -23,7 +23,7 @@ func ListenAndServe() {
 
 func HandleConn(c net.Conn) error {
 	defer c.Close()
-	connection := &Connection{Conn: c}
+	connection := &MQTTConn{Conn: c}
 	fh, err := ReadFixedHeader(c)
 	fmt.Printf("Fixed Header: %+v\n", fh)
 	if err != nil {

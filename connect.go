@@ -10,18 +10,13 @@ const (
     KeepAliveFieldLen = 2
 )
 
-type MQTTConnReadWritter interface {
-    io.ReadWriter
-}
-
-type Connection struct {
+type MQTTConn struct {
     Conn io.ReadWriter
-    Cp *ConnectPacket
+    ClientID string
     Topics []string
 }
 
 type ConnectPacket struct {
-    clientID string
     protocolName string
     protocolLevel byte
     userNameFlag byte
@@ -30,7 +25,8 @@ type ConnectPacket struct {
     willQoSFlag byte
     willFlag byte
     cleanSession byte
-    keepAlive []byte    
+    keepAlive []byte
+    payload []byte   
 }
 
 type ConnackPacket struct {
@@ -60,12 +56,7 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if (err != nil) {
         return nil, err
     }
-    clientID, err := ReadEncodedStr(buf)
-    if err != nil {
-        return nil, err
-    }
     cp := &ConnectPacket{
-        clientID: clientID,
         protocolName: protocol, 
         protocolLevel: protocolLevel,
         userNameFlag: connectFlags >> 7,
@@ -74,7 +65,8 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         willQoSFlag: connectFlags >> 3,
         willFlag: connectFlags >> 2, 
         cleanSession: connectFlags >> 1,
-        keepAlive: keepAlive,    
+        keepAlive: keepAlive,
+        payload: buf.Bytes(),
     }
     return cp, nil
 }
@@ -88,7 +80,7 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 // TODO: Should it be other interface other than io.Reader? seems to broad
-func HandleConnect(c *Connection, fh *FixedHeader) error {
+func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
     _, err := io.ReadFull(c.Conn, b)
     if (err != nil) {
@@ -98,12 +90,15 @@ func HandleConnect(c *Connection, fh *FixedHeader) error {
     if (err != nil) {
         return err
     }
-    c.Cp = cp
+    clientID, err := ReadEncodedStr(bytes.NewBuffer(cp.payload))
+    if err != nil {
+        return err
+    }
+    c.ClientID = clientID
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,
     }
-
     rawConnackPkt := EncodeConnackPacket(connackPkt)
     _, err = c.Conn.Write(rawConnackPkt)
     if (err != nil) {
