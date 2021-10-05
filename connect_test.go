@@ -19,7 +19,6 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodeConnectPacket(cp[2:])
-	// fmt.Println(result)
 	// Then: we get a connect packet struct with the right values
 	if err != nil {
 		t.Fatalf("DecodeConnectPacket failed with err %d", err)

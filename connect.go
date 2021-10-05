@@ -79,7 +79,6 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
     return append(fixedHeader, cp...)
 }
 
-// TODO: Should it be other interface other than io.Reader? seems to broad
 func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
     _, err := io.ReadFull(c.Conn, b)
