@@ -103,13 +103,16 @@ func NewClientID() string {
     return b.String()
 }
 
-func IsValidClientIDChars(id string) bool {
+func IsValidClientID(id string) bool {
+    if len(id) > MaxClientIDLen || len(id) == 0 {
+        return false
+    }
     for _, r := range id {
-        if (r >= '0' && r <= '9') || (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') {
-            return true
+        if (r < '0' || r > '9') && (r < 'A' || r > 'Z') && (r < 'a' || r > 'z') {
+            return false
         }
     }
-    return false
+    return true
 }
 
 func IsValidUTF8Encoded(bytes []byte) bool {

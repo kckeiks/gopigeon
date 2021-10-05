@@ -180,3 +180,28 @@ func TestReadEncodedStr(t *testing.T) {
 		t.Fatalf("Got %s but expected MQTT.", result)
 	} 
 }
+
+func TestIsValidClientIDValid(t *testing.T) {
+	// Given: a sequence of valid characters for client ids
+	ids := []string{"thisisvalid", "123456789098766543", "thisisvalidnitis23chars", "o"}
+	// When: we ask if they're valid
+	// Then: we get true
+	for _, id := range ids {
+		if IsValidClientID(id) != true {
+			t.Fatalf("client id %s should be valid.", id)
+		} 
+	} 
+}
+
+func TestIsValidClientIDInvalid(t *testing.T) {
+	// Given: a sequence of invalid characters for client ids
+	ids := []string{"notvalid has space", "thisistoolonggggggggggggggggggggg", 
+	"thisisnotvalidbecauseithas-", "%!@#$%", " tryit ", "golang_12345", ""}
+	// When: we ask if they're valid
+	// Then: we get false
+	for _, id := range ids {
+		if IsValidClientID(id) != false {
+			t.Fatalf("client id \"%s\" should be invalid.", id)
+		} 
+	} 
+}
