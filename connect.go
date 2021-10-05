@@ -93,6 +93,13 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
     if err != nil {
         return err
     }
+    if !IsValidClientID(clientID) {
+        if len(clientID) > 0 {
+            // TODO: what do we do in this scenario?
+            panic("invalid client id")
+        }
+        clientID = NewClientID()
+    }
     c.ClientID = clientID
     connackPkt := ConnackPacket{
         AckFlags: 0,

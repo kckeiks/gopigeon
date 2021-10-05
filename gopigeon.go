@@ -33,8 +33,10 @@ func HandleConn(c net.Conn) error {
 	if fh.PktType != Connect {
 		fmt.Println(ExpectingConnectPktError)
 		return ExpectingConnectPktError
-	}	
+	}
+	fmt.Printf("Connection before: %+v\n", connection)
 	err = HandleConnect(connection, fh)
+	fmt.Printf("Connection After: %+v\n", connection)
 	if err != nil {
 		fmt.Println(err)
 		return err
