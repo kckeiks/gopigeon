@@ -9,4 +9,5 @@ var (
 	ProtocolLevelError = errors.New("invalid protocol level")
 	SecondConnectPktError = errors.New("second connect pkt received")
 	ExpectingConnectPktError = errors.New("expecting a connect pkt")
+	InvalidClientIDError = errors.New("invalid client id")
 )

@@ -3,6 +3,7 @@ package gopigeon
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -27,6 +28,7 @@ func newTestEncodedConnectPkt() (*ConnectPacket, []byte) {
 		willFlag:0, 
 		cleanSession:1, 
 		keepAlive:[]byte{0, 0},
+		payload : []byte{0, 0},
 	}
 	return cp, decodeTestConnectPkt(cp)
 }
@@ -36,13 +38,17 @@ func decodeTestConnectPkt(cp *ConnectPacket) []byte {
 	pn := []byte(cp.protocolName)
 	var pnLen = [2]byte{}
 	binary.BigEndian.PutUint16(pnLen[:], uint16(len(pn)))
-	connect := []byte{16, 12}
+	// 10 bytes expecte payload
+	fmt.Printf("remlength: %d\n", uint32(10 + len(cp.payload)))
+	remLength := EncodeRemLength(uint32(10 + len(cp.payload)))
+	connect := []byte{16}  // fixed header
+	connect = append(connect, remLength...) // fixed header
 	connect = append(connect, pnLen[:]...)  // add protocol name
 	connect = append(connect, pn...)  // add protocol name
 	connect = append(connect, cp.protocolLevel)
 	connect = append(connect, 2) // TODO: connect flags
 	connect = append(connect, 0, 0,) // TODO: Keep Alive
-	return append(connect, 0, 0) // TODO: Payload
+	return append(connect, cp.payload...) // TODO: Payload
 }
 
 func NewTestEncodedConnackPkt() []byte {
