@@ -10,4 +10,5 @@ var (
 	SecondConnectPktError = errors.New("second connect pkt received")
 	ExpectingConnectPktError = errors.New("expecting a connect pkt")
 	InvalidClientIDError = errors.New("invalid client id")
+	UniqueClientIDError = errors.New("client id is not unique")
 )

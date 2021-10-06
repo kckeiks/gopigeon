@@ -93,13 +93,24 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
     if err != nil {
         return err
     }
-    if !IsValidClientID(clientID) {
-        if len(clientID) > 0 {
-            // TODO: what do we do in this scenario?
-            return InvalidClientIDError
-        }
+    if len(clientID) == 0 {
         clientID = NewClientID()
+        // we try until we get a unique ID
+        for !clientIDSet.isClientIDUnique(clientID) {
+            clientID = NewClientID()
+        }
     }
+    if !IsValidClientID(clientID) {
+        // NewClientID() guarantees a valid id so client sent us invalid id
+        // TODO: send connack with 2 error code
+        return InvalidClientIDError
+    }
+    if !clientIDSet.isClientIDUnique(clientID) {
+        // not unique id sent by client
+        // TODO: send connack with 2 error code
+        return UniqueClientIDError
+    }
+    clientIDSet.saveClientID(clientID)
     c.ClientID = clientID
     connackPkt := ConnackPacket{
         AckFlags: 0,

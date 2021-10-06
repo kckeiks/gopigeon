@@ -5,6 +5,7 @@ import (
     "io"
     "encoding/binary"
     "strings"
+    "sync"
     "unicode/utf8"
     "unicode"
     "math/rand"
@@ -33,14 +34,19 @@ const (
     MaxClientIDLen  = 23
 )
 
-var clientIDSet map[string]int 
-
 const clientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+var clientIDSet = &idSet{set: make(map[string]int)}
 
 type FixedHeader struct {
     PktType byte
     Flags byte
     RemLength uint32
+}
+
+type idSet struct {
+    mu sync.Mutex
+    set map[string]int
 }
 
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
@@ -146,4 +152,17 @@ func ReadEncodedStr(r io.Reader) (string, error) {
         return "", errors.New("")
     }
     return string(str), nil
+}
+
+func (s *idSet) saveClientID(id string) {
+    s.mu.Lock()
+	defer s.mu.Unlock()
+    s.set[id] = 0
+}
+
+func (s *idSet) isClientIDUnique(id string) bool {
+    s.mu.Lock()
+	defer s.mu.Unlock()
+	_, ok := s.set[id]
+	return !ok
 }
