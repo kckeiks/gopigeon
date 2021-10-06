@@ -3,7 +3,6 @@ package gopigeon
 import (
 	"reflect"
 	"testing"
-	// "fmt"
 )
 
 func TestDecodeConnectPacketSuccess(t *testing.T) {
@@ -37,7 +36,6 @@ func TestDecodeConnectPacketInvalidProtocolName(t *testing.T) {
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
-	// fmt.Println(result)
 	// Then: we get a connect packet struct with the right values
 	if err == nil {
 		t.Fatalf("DecodeConnectPacket returned nil for error.")
@@ -58,7 +56,6 @@ func TestDecodeConnectPacketInvalidProtocolLevel(t *testing.T) {
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
-	// fmt.Println(result)
 	// Then: we get a connect packet struct with the right values
 	if err == nil {
 		t.Fatalf("DecodeConnectPacket returned nil for error.")
