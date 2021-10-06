@@ -12,7 +12,7 @@ var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
 
 type Subscribers struct {
 	mu sync.Mutex
-	subscribers map[string][]*MQTTConn // = make(map[string][]io.ReadWriter)
+	subscribers map[string][]*MQTTConn
 }
 
 type SubscribePayload struct {
