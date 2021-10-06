@@ -2,7 +2,6 @@ package gopigeon
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -102,7 +101,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 	fh := &FixedHeader{
 		PktType: Connect,
 		Flags: 0, 
-		RemLength: 12,
+		RemLength: uint32(len(cp[2:])),
 	}
 	// Given: mqtt connection that has the pkt in its buffer
 	conn := newTestMQTTConn(cp[2:])
@@ -127,7 +126,7 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 	fh := &FixedHeader{
 		PktType: Connect,
 		Flags: 0, 
-		RemLength: 12,
+		RemLength: uint32(len(cp[2:])),
 	}
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
@@ -152,9 +151,8 @@ func TestHandleConnectValidClientID(t *testing.T) {
 	fh := &FixedHeader{
 		PktType: Connect,
 		Flags: 0, 
-		RemLength: 12,
+		RemLength: uint32(len(cp[2:])),
 	}
-	fmt.Printf("pkt: %v\n", cp)
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection
@@ -182,7 +180,7 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 	fh := &FixedHeader{
 		PktType: Connect,
 		Flags: 0, 
-		RemLength: 12,
+		RemLength: uint32(len(cp[2:])),
 	}
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
@@ -192,5 +190,4 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 	if err != InvalidClientIDError {
 		t.Fatalf("expected InvalidClientIDError but got %s", err.Error())
 	}
-
 }

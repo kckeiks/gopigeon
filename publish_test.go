@@ -16,7 +16,7 @@ func TestDecodePublishPacket(t *testing.T) {
 	// Then: we get a connect packet struct with the right values
 	expectedResult := &PublishPacket{
 		Topic: "testtopic",
-		Payload: []byte{0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99},
+		Payload: []byte{116, 101, 115, 116, 109, 115, 103},
 	}
 	if err != nil {
 		t.Fatalf("DecodePublishPacket failed with err %d", err)
@@ -35,7 +35,7 @@ func TestHandlePublish(t *testing.T) {
 	fh := &FixedHeader{
 		PktType: Publish,
 		Flags: 0, 
-		RemLength: 18,
+		RemLength: uint32(len(cp[2:])),
 	}
 	// without header
 	rr := bytes.NewBuffer(cp[2:])

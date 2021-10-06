@@ -2,7 +2,6 @@ package gopigeon
 
 import (
     "bytes"
-    "fmt"
     "io"
 )
 
@@ -92,7 +91,6 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
     }
     clientID, err := ReadEncodedStr(bytes.NewBuffer(cp.payload))
     if err != nil {
-        fmt.Println("HERE?")
         return err
     }
     if !IsValidClientID(clientID) {

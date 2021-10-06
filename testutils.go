@@ -3,7 +3,6 @@ package gopigeon
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"io"
 )
 
@@ -38,8 +37,7 @@ func decodeTestConnectPkt(cp *ConnectPacket) []byte {
 	pn := []byte(cp.protocolName)
 	var pnLen = [2]byte{}
 	binary.BigEndian.PutUint16(pnLen[:], uint16(len(pn)))
-	// 10 bytes expecte payload
-	fmt.Printf("remlength: %d\n", uint32(10 + len(cp.payload)))
+	// 10 bytes expected that do not include payload
 	remLength := EncodeRemLength(uint32(10 + len(cp.payload)))
 	connect := []byte{16}  // fixed header
 	connect = append(connect, remLength...) // fixed header

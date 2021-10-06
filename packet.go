@@ -9,7 +9,6 @@ import (
     "unicode"
     "math/rand"
     "time"
-    "fmt"
 )
 
 const (
@@ -133,16 +132,12 @@ func IsValidUTF8Encoded(bytes []byte) bool {
 
 // TODO: Fix this function
 func ReadEncodedStr(r io.Reader) (string, error) {
-    fmt.Printf("ReadEncodedStr reader %+v\n", r)
     b := make([]byte, StrlenLen)
-    fmt.Printf("ReadEncodedStr new b %+v\n", b)
     _, err := io.ReadFull(r, b)
-    fmt.Printf("ReadEncodedStr after b%+v\n", b)
     if (err != nil) {
         return "", err
     }
     str := make([]byte, binary.BigEndian.Uint16(b))
-    fmt.Printf("ReadEncodedStr str %+v\n", len(str))
     _, err = io.ReadFull(r, str)
     if (err != nil) {
         return "", err
