@@ -8,11 +8,11 @@ import (
 	"errors"
 )
 
-var subscribers = &Subscribers{subscribers: make(map[string][]io.ReadWriter)}
+var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
 
 type Subscribers struct {
 	mu sync.Mutex
-	subscribers map[string][]io.ReadWriter // = make(map[string][]io.ReadWriter)
+	subscribers map[string][]*MQTTConn // = make(map[string][]io.ReadWriter)
 }
 
 type SubscribePayload struct {
@@ -48,18 +48,18 @@ func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 	return &SubscribePacket{PacketID: binary.BigEndian.Uint16(packetId), Payload: payload}, nil
 }
 
-func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
+func HandleSubscribe(c *MQTTConn, fh *FixedHeader) error {
 	b := make([]byte, fh.RemLength)
-    _, err := io.ReadFull(rw, b)
+    _, err := io.ReadFull(c.Conn, b)
     if (err != nil) {
         return err
     }
 	sp, err := DecodeSubscribePacket(b)
 	for _, payload := range sp.Payload {
-		subscribers.addSubscriber(rw, payload.TopicFilter)
+		subscribers.addSubscriber(c, payload.TopicFilter)
 	}
 	esp := EncodeSubackPacket(sp.PacketID)
-	_, err = rw.Write(esp)	
+	_, err = c.Conn.Write(esp)	
 	if (err != nil) {
         return err
     }
@@ -75,13 +75,13 @@ func EncodeSubackPacket(pktID uint16) []byte {
 	return append(fixedHeader, pID...)
 }
 
-func (s *Subscribers) addSubscriber(rw io.ReadWriter, topic string) {
+func (s *Subscribers) addSubscriber(c *MQTTConn, topic string) {
 	s.mu.Lock()
-	s.subscribers[topic] = append(s.subscribers[topic], rw)
+	s.subscribers[topic] = append(s.subscribers[topic], c)
 	s.mu.Unlock()
 }
 
-func (s *Subscribers) getSubscribers(topic string) ([]io.ReadWriter, error) {
+func (s *Subscribers) getSubscribers(topic string) ([]*MQTTConn, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	subs, ok := s.subscribers[topic]

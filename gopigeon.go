@@ -50,7 +50,7 @@ func HandleConn(c net.Conn) error {
 		case Publish:
 			err = HandlePublish(c, fh)
 		case Subscribe:
-			err = HandleSubscribe(c, fh)
+			err = HandleSubscribe(connection, fh)
 		case Connect:
 			err = SecondConnectPktError
 		case Disconnect:

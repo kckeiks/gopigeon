@@ -29,7 +29,7 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 	}
 	// TODO: if one write op goes wrong, it should not stop us from trying the rest
 	for _, s := range subs {
-		_, err = s.Write(ep)
+		_, err = s.Conn.Write(ep)
 		if err != nil {
 			fmt.Printf("publishing error: %s\n", err.Error())
 		}
