@@ -101,12 +101,12 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
         }
     }
     if !IsValidClientID(clientID) {
-        // NewClientID() guarantees a valid id so client sent us invalid id
+        // Server guarantees id generated will be valid so client sent us invalid id
         // TODO: send connack with 2 error code
         return InvalidClientIDError
     }
     if !clientIDSet.isClientIDUnique(clientID) {
-        // not unique id sent by client
+        // Server guarantees id generated will be unique so client sent us used id
         // TODO: send connack with 2 error code
         return UniqueClientIDError
     }
