@@ -4,8 +4,11 @@ import (
     "errors"
     "io"
     "encoding/binary"
+    "strings"
     "unicode/utf8"
     "unicode"
+    "math/rand"
+    "time"
 )
 
 const (
@@ -27,7 +30,12 @@ const (
     ProtocolNameLen = 4
     PacketIDLen     = 2
     StrlenLen       = 2
+    MaxClientIDLen  = 23
 )
+
+var clientIDSet map[string]int 
+
+const clientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 type FixedHeader struct {
     PktType byte
@@ -83,6 +91,28 @@ func EncodeRemLength(n uint32) []byte {
         result = append(result, encodedByte)
     }
     return result
+}
+
+func NewClientID() string {
+    rand.Seed(time.Now().UnixNano())
+    var b strings.Builder
+    b.Grow(MaxClientIDLen)
+    for i := 0; i < MaxClientIDLen; i++ {
+        b.WriteByte(clientIDletters[rand.Intn(len(clientIDletters))])
+    }
+    return b.String()
+}
+
+func IsValidClientID(id string) bool {
+    if len(id) > MaxClientIDLen || len(id) == 0 {
+        return false
+    }
+    for _, r := range id {
+        if (r < '0' || r > '9') && (r < 'A' || r > 'Z') && (r < 'a' || r > 'z') {
+            return false
+        }
+    }
+    return true
 }
 
 func IsValidUTF8Encoded(bytes []byte) bool {

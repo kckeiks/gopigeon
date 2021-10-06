@@ -10,6 +10,12 @@ const (
     KeepAliveFieldLen = 2
 )
 
+type MQTTConn struct {
+    Conn io.ReadWriter
+    ClientID string
+    Topics []string
+}
+
 type ConnectPacket struct {
     protocolName string
     protocolLevel byte
@@ -19,7 +25,8 @@ type ConnectPacket struct {
     willQoSFlag byte
     willFlag byte
     cleanSession byte
-    keepAlive []byte    
+    keepAlive []byte
+    payload []byte   
 }
 
 type ConnackPacket struct {
@@ -58,7 +65,8 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         willQoSFlag: connectFlags >> 3,
         willFlag: connectFlags >> 2, 
         cleanSession: connectFlags >> 1,
-        keepAlive: keepAlive,    
+        keepAlive: keepAlive,
+        payload: buf.Bytes(),
     }
     return cp, nil
 }
@@ -71,24 +79,34 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
     return append(fixedHeader, cp...)
 }
 
-// TODO: Should it be other interface other than io.Reader? seems to broad
-func HandleConnect(r io.ReadWriter, fh *FixedHeader) error {
+func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
     b := make([]byte, fh.RemLength)
-    _, err := io.ReadFull(r, b)
+    _, err := io.ReadFull(c.Conn, b)
     if (err != nil) {
         return err
     }
-    _, err = DecodeConnectPacket(b)
+    cp, err := DecodeConnectPacket(b)
     if (err != nil) {
         return err
     }
+    clientID, err := ReadEncodedStr(bytes.NewBuffer(cp.payload))
+    if err != nil {
+        return err
+    }
+    if !IsValidClientID(clientID) {
+        if len(clientID) > 0 {
+            // TODO: what do we do in this scenario?
+            return InvalidClientIDError
+        }
+        clientID = NewClientID()
+    }
+    c.ClientID = clientID
     connackPkt := ConnackPacket{
         AckFlags: 0,
         RtrnCode: 0,
     }
-
     rawConnackPkt := EncodeConnackPacket(connackPkt)
-    _, err = r.Write(rawConnackPkt)
+    _, err = c.Conn.Write(rawConnackPkt)
     if (err != nil) {
         return err
     }

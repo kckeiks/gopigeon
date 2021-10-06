@@ -13,12 +13,12 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 		protocolLevel:4,
 		cleanSession:1,
 		keepAlive: []byte{0, 0},
+		payload: []byte{0, 0},
 	}
 	cp := decodeTestConnectPkt(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodeConnectPacket(cp[2:])
-	// fmt.Println(result)
 	// Then: we get a connect packet struct with the right values
 	if err != nil {
 		t.Fatalf("DecodeConnectPacket failed with err %d", err)
@@ -96,19 +96,98 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 		protocolLevel:4,
 		cleanSession:1,
 		keepAlive: make([]byte, 2),
+		payload: []byte{0, 0},
 	})
 	fh := &FixedHeader{
 		PktType: Connect,
 		Flags: 0, 
-		RemLength: 12,
+		RemLength: uint32(len(cp[2:])),
 	}
-	// ReadWriter without header
-	rr := bytes.NewBuffer(cp[2:]) 
-	// When: we handle a connnect packet and pass the ReadWriter
-	HandleConnect(rr, fh)
-	// Then: the ReadWriter will have the Connack pkt representation in bytes
+	// Given: mqtt connection that has the pkt in its buffer
+	conn := newTestMQTTConn(cp[2:])
+	// When: we handle a connnect packet
+	HandleConnect(&conn, fh)
+	// Then: the connection will have the Connack pkt representation in bytes
 	expectedResult := bytes.NewBuffer(NewTestEncodedConnackPkt())
-	if !reflect.DeepEqual(rr, expectedResult) {
-		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", rr, expectedResult)
+	if !reflect.DeepEqual(conn.Conn, expectedResult) {
+		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", conn.Conn, expectedResult)
+	}
+}
+
+func TestHandleConnectCreateClientID(t *testing.T) {
+	// Given: connect pkt with client id of size zero
+	cp := decodeTestConnectPkt(&ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4,
+		cleanSession:1,
+		keepAlive: make([]byte, 2),
+		payload: []byte{0, 0},
+	})
+	fh := &FixedHeader{
+		PktType: Connect,
+		Flags: 0, 
+		RemLength: uint32(len(cp[2:])),
+	}
+	// Given: a connection with the connect pkt
+	conn := newTestMQTTConn(cp[2:])
+	// When: we handle the connection
+	HandleConnect(&conn, fh)
+	// Then: we change the state of the connection
+	// by assigning it a randomly generated client id
+	if conn.ClientID == "" {
+		t.Fatalf("did not expect MQTTConn.ClientID to be the empty string")
+	} 
+}
+
+func TestHandleConnectValidClientID(t *testing.T) {
+	// Given: connect pkt with client id of size zero
+	cp := decodeTestConnectPkt(&ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4,
+		cleanSession:1,
+		keepAlive: []byte{0, 0},
+		payload: []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64},
+	})
+	fh := &FixedHeader{
+		PktType: Connect,
+		Flags: 0, 
+		RemLength: uint32(len(cp[2:])),
+	}
+	// Given: a connection with the connect pkt
+	conn := newTestMQTTConn(cp[2:])
+	// When: we handle the connection
+	err := HandleConnect(&conn, fh)
+	// Then: there is no error
+	if err != nil {
+		t.Fatalf("unexpected error %s", err)
+	}
+	// Then: We set the state with the 
+	expectedResult := "testid"
+	if conn.ClientID != expectedResult {
+		t.Fatalf("expected %s but instead got %s", expectedResult, conn.ClientID)
+	} 
+}
+
+func TestHandleConnectInvalidClientID(t *testing.T) {
+	// Given: connect pkt with client id of size zero
+	cp := decodeTestConnectPkt(&ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4,
+		cleanSession:1,
+		keepAlive: make([]byte, 2),
+		payload: []byte{0x00, 0x07, 0x74, 0x20, 0x65, 0x73, 0x74, 0x69, 0x64},
+	})
+	fh := &FixedHeader{
+		PktType: Connect,
+		Flags: 0, 
+		RemLength: uint32(len(cp[2:])),
+	}
+	// Given: a connection with the connect pkt
+	conn := newTestMQTTConn(cp[2:])
+	// When: we handle the connection
+	err := HandleConnect(&conn, fh)
+	// Then: there is an error
+	if err != InvalidClientIDError {
+		t.Fatalf("expected InvalidClientIDError but got %s", err.Error())
 	}
 }

@@ -35,7 +35,7 @@ func TestHandlePublish(t *testing.T) {
 	fh := &FixedHeader{
 		PktType: Publish,
 		Flags: 0, 
-		RemLength: 18,
+		RemLength: uint32(len(cp[2:])),
 	}
 	// without header
 	rr := bytes.NewBuffer(cp[2:])
