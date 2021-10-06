@@ -51,6 +51,12 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if (err != nil) {
         return nil, err
     }
+    // read the rest
+    payload := make([]byte, buf.Len())
+    _, err = io.ReadFull(buf, payload)
+    if (err != nil) {
+        return nil, err
+    }
     cp := &ConnectPacket{
         protocolName: protocol, 
         protocolLevel: protocolLevel,
@@ -61,7 +67,7 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
         willFlag: connectFlags >> 2, 
         cleanSession: connectFlags >> 1,
         keepAlive: keepAlive,
-        payload: buf.Bytes(),
+        payload: payload,
     }
     return cp, nil
 }
