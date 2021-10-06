@@ -13,7 +13,7 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 		protocolLevel:4,
 		cleanSession:1,
 	}
-	_, cp := newConnect(expectedResult)
+	_, cp := newTestConnectRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodeConnectPacket(cp[2:])
@@ -33,7 +33,7 @@ func TestDecodeConnectPacketInvalidProtocolName(t *testing.T) {
 		protocolLevel:4,
 		cleanSession:1,
 	}
-	_, cp := newConnect(expectedResult)
+	_, cp := newTestConnectRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
@@ -54,7 +54,7 @@ func TestDecodeConnectPacketInvalidProtocolLevel(t *testing.T) {
 		protocolLevel:8, // bad
 		cleanSession:1,
 	}
-	_, cp := newConnect(expectedResult)
+	_, cp := newTestConnectRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
@@ -87,7 +87,7 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: a ReadWriter implementation like bytes.Buffer or net.Conn
 	// Given: we can read our Connect packet from a ReadWriter 
-	fh, cp := newConnect(&ConnectPacket{
+	fh, cp := newTestConnectRequest(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
@@ -111,7 +111,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 
 func TestHandleConnectCreateClientID(t *testing.T) {
 	// Given: connect pkt with client id of size zero
-	fh, cp := newConnect(&ConnectPacket{
+	fh, cp := newTestConnectRequest(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
@@ -129,7 +129,7 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 
 func TestHandleConnectValidClientID(t *testing.T) {
 	// Given: connect pkt with client id of size zero
-	fh, cp := newConnect(&ConnectPacket{
+	fh, cp := newTestConnectRequest(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
@@ -152,7 +152,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 
 func TestHandleConnectInvalidClientID(t *testing.T) {
 	// Given: connect pkt with client id of size zero
-	fh, cp := newConnect(&ConnectPacket{
+	fh, cp := newTestConnectRequest(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
