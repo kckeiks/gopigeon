@@ -12,10 +12,8 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
-		keepAlive: []byte{0, 0},
-		payload: []byte{0, 0},
 	}
-	cp := decodeTestConnectPkt(expectedResult)
+	_, cp := newConnect(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodeConnectPacket(cp[2:])
@@ -34,9 +32,8 @@ func TestDecodeConnectPacketInvalidProtocolName(t *testing.T) {
 		protocolName:"INVALID",
 		protocolLevel:4,
 		cleanSession:1,
-		keepAlive: []byte{0, 0},
 	}
-	cp := decodeTestConnectPkt(expectedResult)
+	_, cp := newConnect(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
@@ -56,9 +53,8 @@ func TestDecodeConnectPacketInvalidProtocolLevel(t *testing.T) {
 		protocolName:"MQTT",
 		protocolLevel:8, // bad
 		cleanSession:1,
-		keepAlive: []byte{0, 0},
 	}
-	cp := decodeTestConnectPkt(expectedResult)
+	_, cp := newConnect(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
@@ -91,18 +87,11 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: a ReadWriter implementation like bytes.Buffer or net.Conn
 	// Given: we can read our Connect packet from a ReadWriter 
-	cp := decodeTestConnectPkt(&ConnectPacket{
+	fh, cp := newConnect(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
-		keepAlive: make([]byte, 2),
-		payload: []byte{0, 0},
 	})
-	fh := &FixedHeader{
-		PktType: Connect,
-		Flags: 0, 
-		RemLength: uint32(len(cp[2:])),
-	}
 	// Given: mqtt connection that has the pkt in its buffer
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle a connnect packet
@@ -122,18 +111,11 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 
 func TestHandleConnectCreateClientID(t *testing.T) {
 	// Given: connect pkt with client id of size zero
-	cp := decodeTestConnectPkt(&ConnectPacket{
+	fh, cp := newConnect(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
-		keepAlive: make([]byte, 2),
-		payload: []byte{0, 0},
 	})
-	fh := &FixedHeader{
-		PktType: Connect,
-		Flags: 0, 
-		RemLength: uint32(len(cp[2:])),
-	}
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection
@@ -147,18 +129,12 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 
 func TestHandleConnectValidClientID(t *testing.T) {
 	// Given: connect pkt with client id of size zero
-	cp := decodeTestConnectPkt(&ConnectPacket{
+	fh, cp := newConnect(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
-		keepAlive: []byte{0, 0},
 		payload: []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64},
 	})
-	fh := &FixedHeader{
-		PktType: Connect,
-		Flags: 0, 
-		RemLength: uint32(len(cp[2:])),
-	}
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection
@@ -176,18 +152,12 @@ func TestHandleConnectValidClientID(t *testing.T) {
 
 func TestHandleConnectInvalidClientID(t *testing.T) {
 	// Given: connect pkt with client id of size zero
-	cp := decodeTestConnectPkt(&ConnectPacket{
+	fh, cp := newConnect(&ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
-		keepAlive: make([]byte, 2),
 		payload: []byte{0x00, 0x07, 0x74, 0x20, 0x65, 0x73, 0x74, 0x69, 0x64},
 	})
-	fh := &FixedHeader{
-		PktType: Connect,
-		Flags: 0, 
-		RemLength: uint32(len(cp[2:])),
-	}
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection

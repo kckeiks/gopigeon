@@ -20,7 +20,7 @@ type ConnectPacket struct {
     willQoSFlag byte
     willFlag byte
     cleanSession byte
-    keepAlive []byte
+    keepAlive [KeepAliveFieldLen]byte
     payload []byte   
 }
 
@@ -46,8 +46,9 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
     if (err != nil) {
         return nil, err
     }
-    keepAlive := make([]byte, KeepAliveFieldLen)
-    _, err = io.ReadFull(buf, keepAlive)
+    // keepAlive := make([]byte, KeepAliveFieldLen)
+    keepAlive := [KeepAliveFieldLen]byte{}
+    _, err = io.ReadFull(buf, keepAlive[:])
     if (err != nil) {
         return nil, err
     }

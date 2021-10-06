@@ -58,21 +58,30 @@ func newTestEncodedConnectPkt() (*ConnectPacket, []byte) {
 		willQoSFlag:0, 
 		willFlag:0, 
 		cleanSession:1, 
-		keepAlive:[]byte{0, 0},
 		payload : []byte{0, 0},
 	}
-	return cp, decodeTestConnectPkt(cp)
+	return cp, encodeTestConnectPkt(cp)
 }
 
-func decodeTestConnectPkt(cp *ConnectPacket) []byte {
-	// TODO: this should include header
+func newConnect(cp *ConnectPacket) (*FixedHeader, []byte) {
+	// ugly side effect but will make tests cleaner and less prone to misleading errors
+	if len(cp.payload) == 0 {
+		cp.payload = []byte{0, 0}
+	}
+	connectInBytes := encodeTestConnectPkt(cp)
+	// TODO: encode flags
+	return &FixedHeader{PktType: Connect, RemLength: uint32(len(connectInBytes[2:]))}, connectInBytes
+}
+
+func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	pn := []byte(cp.protocolName)
 	var pnLen = [2]byte{}
 	binary.BigEndian.PutUint16(pnLen[:], uint16(len(pn)))
-	// 10 bytes expected that do not include payload
-	remLength := EncodeRemLength(uint32(10 + len(cp.payload)))
-	connect := []byte{16}  // fixed header
-	connect = append(connect, remLength...) // fixed header
+	// # of bytes: 4 bytes (protocol level, connect flags, keep alive) + 
+	// 2 to encode protocol name len + len of bytes in protocol name + len of payload
+	lenOfPkt := uint32(4 + 2 + len(pn) + len(cp.payload))
+	connect := []byte{Connect << 4}  // MS nibble has type and LS nibble is reserved e.g. 0 
+	connect = append(connect, EncodeRemLength(lenOfPkt)...)  // rem length
 	connect = append(connect, pnLen[:]...)  // add protocol name
 	connect = append(connect, pn...)  // add protocol name
 	connect = append(connect, cp.protocolLevel)
