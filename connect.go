@@ -3,18 +3,13 @@ package gopigeon
 import (
     "bytes"
     "io"
+    // "fmt"
 )
 
 const (   
     ProtocolLevel = 4
     KeepAliveFieldLen = 2
 )
-
-type MQTTConn struct {
-    Conn io.ReadWriter
-    ClientID string
-    Topics []string
-}
 
 type ConnectPacket struct {
     protocolName string

@@ -1,9 +1,9 @@
 package gopigeon
 
 import (
-	"bytes"
 	"reflect"
 	"testing"
+	// "fmt"
 )
 
 func TestDecodeConnectPacketSuccess(t *testing.T) {
@@ -106,11 +106,17 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: mqtt connection that has the pkt in its buffer
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle a connnect packet
-	HandleConnect(&conn, fh)
+	err := HandleConnect(conn, fh)
+	// Then: no error
+	if err != nil {
+		t.Fatalf("got an unexpected error")
+	}
 	// Then: the connection will have the Connack pkt representation in bytes
-	expectedResult := bytes.NewBuffer(NewTestEncodedConnackPkt())
-	if !reflect.DeepEqual(conn.Conn, expectedResult) {
-		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", conn.Conn, expectedResult)
+	expectedResult := NewTestEncodedConnackPkt()
+	result := make([]byte, len(expectedResult))
+	conn.Conn.Read(result)
+	if !reflect.DeepEqual(result, expectedResult) {
+		t.Fatalf("got encoded ConnackPacket %d but expected %d,", result, expectedResult)
 	}
 }
 
@@ -131,7 +137,7 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection
-	HandleConnect(&conn, fh)
+	HandleConnect(conn, fh)
 	// Then: we change the state of the connection
 	// by assigning it a randomly generated client id
 	if conn.ClientID == "" {
@@ -156,7 +162,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection
-	err := HandleConnect(&conn, fh)
+	err := HandleConnect(conn, fh)
 	// Then: there is no error
 	if err != nil {
 		t.Fatalf("unexpected error %s", err)
@@ -185,7 +191,7 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection
-	err := HandleConnect(&conn, fh)
+	err := HandleConnect(conn, fh)
 	// Then: there is an error
 	if err != InvalidClientIDError {
 		t.Fatalf("expected InvalidClientIDError but got %s", err.Error())

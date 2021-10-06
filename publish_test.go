@@ -46,7 +46,7 @@ func TestHandlePublish(t *testing.T) {
 		t.Fatalf("HandlePublish failed with err %d", err)
 	}
 	// Then: we published the message to the subscriber
-	msgPublished, err := io.ReadAll(subscriber)
+	msgPublished, err := io.ReadAll(subscriber.Conn)
 	if !reflect.DeepEqual(msgPublished, cp) {
 		t.Fatalf("Publish packet sent %+v but expected %+v.", msgPublished, cp)
 	}

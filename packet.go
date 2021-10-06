@@ -10,6 +10,7 @@ import (
     "unicode"
     "math/rand"
     "time"
+    "net"
 )
 
 const (
@@ -37,6 +38,12 @@ const (
 const clientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var clientIDSet = &idSet{set: make(map[string]struct{})}
+
+type MQTTConn struct {
+    Conn net.Conn
+    ClientID string
+    Topics []string
+}
 
 type FixedHeader struct {
     PktType byte

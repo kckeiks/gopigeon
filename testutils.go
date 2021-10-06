@@ -4,11 +4,43 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"net"
+	"time"
 )
 
-func newTestMQTTConn(b []byte) MQTTConn {
-	return MQTTConn{
-		Conn: bytes.NewBuffer(b),
+// implements net.Conn interface
+type testConn struct {
+	b *bytes.Buffer
+}
+
+func (tc *testConn) Read(b []byte) (int, error) { 
+	if tc.b == nil {
+		tc.b = bytes.NewBuffer([]byte{})
+	}
+	return tc.b.Read(b)  
+}
+
+func (tc *testConn) Write(b []byte) (int, error) {
+	// We are not interested in the *ack messages
+	// return len(b), nil
+	if tc.b == nil {
+		tc.b = bytes.NewBuffer([]byte{})
+	}
+	return tc.b.Write(b)
+}
+
+func (*testConn) Close() error { return nil }
+func (*testConn) LocalAddr() net.Addr { return nil }
+func (*testConn) RemoteAddr() net.Addr { return nil }
+func (*testConn) SetDeadline(t time.Time) error { return nil }
+func (*testConn) SetReadDeadline(t time.Time) error { return nil }
+func (*testConn) SetWriteDeadline(t time.Time) error { return nil }
+
+func newTestMQTTConn(data []byte) *MQTTConn {
+	c := &testConn{}
+	c.Write(data)
+	return &MQTTConn{
+		Conn: c,
 	}
 }
 

@@ -25,7 +25,7 @@ func HandleConn(c net.Conn) error {
 	defer c.Close()
 	connection := &MQTTConn{Conn: c}
 	fh, err := ReadFixedHeader(c)
-	fmt.Printf("Fixed Header: %+v\n", fh)
+	// fmt.Printf("Fixed Header: %+v\n", fh)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -41,7 +41,7 @@ func HandleConn(c net.Conn) error {
 	}
 	for {
 		fh, err := ReadFixedHeader(c)
-		fmt.Printf("Fixed Header: %+v\n", fh)
+		// fmt.Printf("Fixed Header: %+v\n", fh)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -56,6 +56,7 @@ func HandleConn(c net.Conn) error {
 		case Disconnect:
 			return nil
 		default:
+			//fmt.Printf("FFixed Header: %+v\n", fh)
 			fmt.Println("warning: unknonw packet")
     	}
 		if err != nil {

@@ -1,17 +1,15 @@
 package gopigeon
 
 import (
-	"bytes"
-	"io"
 	"testing"
 	"reflect"
 	"encoding/binary"
 )
 
-func addTestSubscriber(topic string) io.ReadWriter {
-	sub := bytes.NewBuffer([]byte{})
-	subscribers = &Subscribers{subscribers: make(map[string][]io.ReadWriter)}
-	subscribers.subscribers[topic] = []io.ReadWriter{sub}
+func addTestSubscriber(topic string) *MQTTConn {
+	sub := newTestMQTTConn([]byte{})
+	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
+	subscribers.subscribers[topic] = []*MQTTConn{sub}
 	return sub
 }
 
@@ -42,9 +40,9 @@ func TestHandleSubscribeSuccess(t *testing.T) {
 		RemLength: 14,
 	}
 	// without header
-	b := bytes.NewBuffer(sp[2:]) 
+	c := newTestMQTTConn(sp[2:])
 	// When: we handle the connection
-	err := HandleSubscribe(b, fh)
+	err := HandleSubscribe(c, fh)
 	// Then: there is no error so we assume things are ok
 	if err != nil {
 		t.Fatalf("HandleSubscribe failed with err %d", err)
@@ -65,14 +63,14 @@ func TestEncodeSubackPacket(t *testing.T) {
 
 func TestAddSubscriberSuccess(t *testing.T) {
 	// Given: we have a table of subscribers
-	subscribers = &Subscribers{subscribers: make(map[string][]io.ReadWriter)}
+	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
 	// Given: a subscriber
-	sub := bytes.NewBuffer([]byte{})
+	sub := newTestMQTTConn([]byte{})
 	// When: we add a subscriber given a topic
 	subscribers.addSubscriber(sub, "testtopic")
 	// Then: we have that subscriber added to the table
-	if !reflect.DeepEqual(subscribers.subscribers["testtopic"], []io.ReadWriter{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %d but expected %d.", subscribers.subscribers["testtopic"], []io.ReadWriter{sub})
+	if !reflect.DeepEqual(subscribers.subscribers["testtopic"], []*MQTTConn{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", subscribers.subscribers["testtopic"], []*MQTTConn{sub})
 	}
 }
 
@@ -86,8 +84,8 @@ func TestGetSubscribersSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("getSubscribers returned an unexpected error %+v", err)
 	}
-	if !reflect.DeepEqual(result, []io.ReadWriter{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %d but expected %d.", result, []io.ReadWriter{sub})
+	if !reflect.DeepEqual(result, []*MQTTConn{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", result, []*MQTTConn{sub})
 	}
 }
 
