@@ -63,7 +63,7 @@ func newTestEncodedConnectPkt() (*ConnectPacket, []byte) {
 	return cp, encodeTestConnectPkt(cp)
 }
 
-func newConnect(cp *ConnectPacket) (*FixedHeader, []byte) {
+func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
 	// ugly side effect but will make tests cleaner and less prone to misleading errors
 	if len(cp.payload) == 0 {
 		cp.payload = []byte{0, 0}
