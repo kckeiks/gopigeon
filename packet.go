@@ -36,7 +36,7 @@ const (
 
 const clientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-var clientIDSet = &idSet{set: make(map[string]int)}
+var clientIDSet = &idSet{set: make(map[string]struct{})}
 
 type FixedHeader struct {
     PktType byte
@@ -46,7 +46,7 @@ type FixedHeader struct {
 
 type idSet struct {
     mu sync.Mutex
-    set map[string]int
+    set map[string]struct{}
 }
 
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
@@ -157,7 +157,7 @@ func ReadEncodedStr(r io.Reader) (string, error) {
 func (s *idSet) saveClientID(id string) {
     s.mu.Lock()
 	defer s.mu.Unlock()
-    s.set[id] = 0
+    s.set[id] = struct{}{}
 }
 
 func (s *idSet) isClientIDUnique(id string) bool {
