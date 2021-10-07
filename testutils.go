@@ -43,7 +43,7 @@ func newTestMQTTConn(data []byte) *MQTTConn {
 	}
 }
 
-func newTestEncodedFixedHeader(fh *FixedHeader) []byte {
+func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 	remLen := EncodeRemLength(fh.RemLength)
 	pktType := fh.PktType << 4
 	pktType = pktType | fh.Flags
