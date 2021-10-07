@@ -78,8 +78,16 @@ func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	return append(connect, cp.payload...) // TODO: Payload
 }
 
-func NewTestEncodedConnackPkt() []byte {
-	return []byte{32, 2, 0, 0}
+func NewTestConnackRequest(cp ConnackPacket) (*FixedHeader, []byte) {
+	cp := ConnackPacket{
+        AckFlags: 0,
+        RtrnCode: 0,
+    }
+	pktType := Connack << 4
+	remLength := 2
+	ackFlags := cp.AckFlags & 1
+	connack := []byte{pktType, remLength, ackFlags, cp.RtrnCode}
+	return &FixedHeader{PktType: Connack, RemLength: uint32(len(connack[2:]))}, connack
 }
 
 // TODO: Maybe refactor these to be more configurable
