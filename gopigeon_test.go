@@ -8,10 +8,19 @@ func TestHandleConnTwoConnects(t *testing.T) {
 	// Given: a connection with a client
 	c := &testConn{}
 	// Given: we send two connect packets
-	_, cp1 := newTestEncodedConnectPkt()
-	_, cp2 := newTestEncodedConnectPkt()
-	c.Write(cp1)
-	c.Write(cp2)
+	cp := &ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4, 
+		userNameFlag:0, 
+		psswdFlag:0, 
+		willRetainFlag:0, 
+		willQoSFlag:0, 
+		willFlag:0, 
+		cleanSession:1, 
+		payload : []byte{0, 0},
+	}
+	c.Write(encodeTestConnectPkt(cp))
+	c.Write(encodeTestConnectPkt(cp))
 	// When: we handle this connection
 	err := HandleConn(c)
 	// Then: we get an error because it is a protocol violation

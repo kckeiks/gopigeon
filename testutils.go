@@ -48,21 +48,6 @@ func newTestEncodedFixedHeader() io.ReadWriter {
 	return bytes.NewBuffer([]byte{16, 12, 0, 4})
 }
 
-func newTestEncodedConnectPkt() (*ConnectPacket, []byte) {
-	cp := &ConnectPacket{
-		protocolName:"MQTT",
-		protocolLevel:4, 
-		userNameFlag:0, 
-		psswdFlag:0, 
-		willRetainFlag:0, 
-		willQoSFlag:0, 
-		willFlag:0, 
-		cleanSession:1, 
-		payload : []byte{0, 0},
-	}
-	return cp, encodeTestConnectPkt(cp)
-}
-
 func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
 	// ugly side effect but will make tests cleaner and less prone to misleading errors
 	if len(cp.payload) == 0 {
