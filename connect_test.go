@@ -75,7 +75,7 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 	result := EncodeConnackPacket(cp)
 	// Then: we get a stream/slice of bytes that represent the pkt
 	// expectedResult containing AckFlags: 0 and RtrnCode: 0
-	expectedResult := NewTestEncodedConnackPkt()
+	expectedResult := newTestConnackRequest(cp.AckFlags, cp.RtrnCode)
 	if !reflect.DeepEqual(result, expectedResult) {
 		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", result, expectedResult)
 	}
@@ -98,7 +98,8 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 		t.Fatalf("got an unexpected error")
 	}
 	// Then: the connection will have the Connack pkt representation in bytes
-	expectedResult := NewTestEncodedConnackPkt()
+	connack := ConnackPacket{ AckFlags: 0, RtrnCode: 0}
+	expectedResult := newTestConnackRequest(connack.AckFlags, connack.RtrnCode)
 	result := make([]byte, len(expectedResult))
 	conn.Conn.Read(result)
 	if !reflect.DeepEqual(result, expectedResult) {
