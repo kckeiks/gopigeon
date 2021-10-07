@@ -3,7 +3,6 @@ package gopigeon
 import (
 	"bytes"
 	"encoding/binary"
-	"io"
 	"net"
 	"time"
 )
@@ -44,8 +43,12 @@ func newTestMQTTConn(data []byte) *MQTTConn {
 	}
 }
 
-func newTestEncodedFixedHeader() io.ReadWriter {
-	return bytes.NewBuffer([]byte{16, 12, 0, 4})
+func newTestEncodedFixedHeader(fh *FixedHeader) []byte {
+	remLen := EncodeRemLength(fh.RemLength)
+	pktType := fh.PktType << 4
+	pktType = pktType | fh.Flags
+	encodedFh := []byte{pktType}
+	return append(encodedFh, remLen...)
 }
 
 func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
