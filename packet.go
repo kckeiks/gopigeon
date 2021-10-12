@@ -174,6 +174,12 @@ func (s *idSet) isClientIDUnique(id string) bool {
 	return !ok
 }
 
+func (s *idSet) removeClientID(id string) {
+    s.mu.Lock()
+	defer s.mu.Unlock()
+    delete(s.set, id)
+}
+
 func encodeStr(s string) []byte {
 	b := []byte(s)
 	encodedStr := make([]byte, 2)

@@ -73,5 +73,6 @@ func HandleDisconnect(c *MQTTConn) {
 		subscribers.removeSubscriber(c, topic)
 	}
 	// remove ClientID from ID set
+	clientIDSet.removeClientID(c.ClientID)
 	c.Conn.Close()
 }
