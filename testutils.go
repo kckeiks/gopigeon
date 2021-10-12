@@ -121,7 +121,3 @@ func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	}
 	return &FixedHeader{PktType: Subscribe, RemLength: remLen}, subscribe
 }
-
-func NewTestEncodedSubscribePkt() []byte {
-	return []byte{130, 14, 0, 1, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 0}
-}
