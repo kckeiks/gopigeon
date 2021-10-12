@@ -15,14 +15,14 @@ func addTestSubscriber(topic string) *MQTTConn {
 
 func TestDecodeSubscribePacketSuccess(t *testing.T) {
 	// Given: a slice/stream of bytes that represent a subscribe pkt
-	sp := NewTestEncodedSubscribePkt()
-	// When: we decoded it
-	result, err := DecodeSubscribePacket(sp[2:])
-	// Then: we get a SubscribePacket struct
 	expectedResult := SubscribePacket{
 		PacketID: 1,
 		Payload: []SubscribePayload{SubscribePayload{TopicFilter: "testtopic", QoS: 0}},
 	}
+	_, sp := newTestSubscribeRequest(SubscribePacket)
+	// When: we decoded it
+	result, err := DecodeSubscribePacket(sp[2:])
+	// Then: we get a SubscribePacket struct
 	if err != nil {
 		t.Fatalf("Got an unexpected error.")
 	}
