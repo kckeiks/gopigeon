@@ -2,6 +2,6 @@ package main
 
 import "github.com/kckeiks/gopigeon"
 
-func main()  {
+func main() {
 	gopigeon.ListenAndServe()
 }

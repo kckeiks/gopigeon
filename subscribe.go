@@ -2,27 +2,18 @@ package gopigeon
 
 import (
 	"bytes"
-	"io"
 	"encoding/binary"
-	"sync"
-	"errors"
+	"io"
 )
-
-var subscribers = &Subscribers{subscribers: make(map[string][]io.ReadWriter)}
-
-type Subscribers struct {
-	mu sync.Mutex
-	subscribers map[string][]io.ReadWriter // = make(map[string][]io.ReadWriter)
-}
 
 type SubscribePayload struct {
 	TopicFilter string
-	QoS byte
+	QoS         byte
 }
 
 type SubscribePacket struct {
 	PacketID uint16
-	Payload []SubscribePayload
+	Payload  []SubscribePayload
 }
 
 func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
@@ -48,45 +39,30 @@ func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 	return &SubscribePacket{PacketID: binary.BigEndian.Uint16(packetId), Payload: payload}, nil
 }
 
-func HandleSubscribe(rw io.ReadWriter, fh *FixedHeader) error {
+func HandleSubscribe(c *MQTTConn, fh *FixedHeader) error {
 	b := make([]byte, fh.RemLength)
-    _, err := io.ReadFull(rw, b)
-    if (err != nil) {
-        return err
-    }
+	_, err := io.ReadFull(c.Conn, b)
+	if err != nil {
+		return err
+	}
 	sp, err := DecodeSubscribePacket(b)
 	for _, payload := range sp.Payload {
-		subscribers.addSubscriber(rw, payload.TopicFilter)
+		subscribers.addSubscriber(c, payload.TopicFilter)
+		c.Topics = append(c.Topics, payload.TopicFilter)
 	}
 	esp := EncodeSubackPacket(sp.PacketID)
-	_, err = rw.Write(esp)	
-	if (err != nil) {
-        return err
-    }
+	_, err = c.Conn.Write(esp)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func EncodeSubackPacket(pktID uint16) []byte {
-    var pktType byte = Suback << 4
+	var pktType byte = Suback << 4
 	var remLength byte = 2
 	fixedHeader := []byte{pktType, remLength}
 	pID := make([]byte, 2)
 	binary.BigEndian.PutUint16(pID, pktID)
 	return append(fixedHeader, pID...)
 }
-
-func (s *Subscribers) addSubscriber(rw io.ReadWriter, topic string) {
-	s.mu.Lock()
-	s.subscribers[topic] = append(s.subscribers[topic], rw)
-	s.mu.Unlock()
-}
-
-func (s *Subscribers) getSubscribers(topic string) ([]io.ReadWriter, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	subs, ok := s.subscribers[topic]
-	if ok {
-		return subs, nil
-	}
-	return nil, errors.New("NA_TOPIC")
-} 

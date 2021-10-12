@@ -8,14 +8,14 @@ import (
 
 func TestGetFixedHeaderFieldsSuccess(t *testing.T) {
 	// Given: A stream of bytes representing a mqtt header
-	h := newTestEncodedFixedHeader()
+	expectedResult := FixedHeader{PktType: Connect, RemLength: 12}
+	h := newTestEncodedFixedHeader(expectedResult)
 	// When: we try to decode the header
-	result, _ := ReadFixedHeader(h)
+	result, _ := ReadFixedHeader(bytes.NewBuffer(h))
 	// Then: we get the values as expected
-	expectedResult := &FixedHeader{PktType:1, Flags:0, RemLength:12}
-	if !reflect.DeepEqual(result, expectedResult) {
-		t.Fatalf("Got FixedHeader %+v but expected %+v,", result, expectedResult)
-	}  
+	if !reflect.DeepEqual(result, &expectedResult) {
+		t.Fatalf("Got FixedHeader %+v but expected %+v,", result, &expectedResult)
+	}
 }
 
 func TestGetRemLengthEdgeCasesSuccess(t *testing.T) {
@@ -62,7 +62,7 @@ func TestGetRemLengthEdgeCasesSuccess(t *testing.T) {
 	expectedResult = uint32(16384)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
-	} 
+	}
 	// When: we decode them
 	result, _ = ReadRemLength(bytes.NewBuffer(threeByteMax))
 	// Then: we get the values as expected
@@ -76,7 +76,7 @@ func TestGetRemLengthEdgeCasesSuccess(t *testing.T) {
 	expectedResult = uint32(2097152)
 	if result != expectedResult {
 		t.Fatalf("Got rem length %d but expected %d,", result, expectedResult)
-	} 
+	}
 	// When: we decode them
 	result, _ = ReadRemLength(bytes.NewBuffer(fourByteMax))
 	// Then: we get the values as expected
@@ -111,7 +111,7 @@ func TestIsValidUTF8EncodedSuccess(t *testing.T) {
 func TestIsValidUTF8EncodedInvalid(t *testing.T) {
 	// Given: some invalid utf8 encoded string
 	// When: we try to validated
-	result := IsValidUTF8Encoded([]byte{0xED, 0xA0, 0x80}) // U+D800 
+	result := IsValidUTF8Encoded([]byte{0xED, 0xA0, 0x80}) // U+D800
 	// Then: we get an error
 	if result {
 		t.Fatalf("Got IsValidUTF8Encoded true but expected false.")
@@ -178,30 +178,5 @@ func TestReadEncodedStr(t *testing.T) {
 	}
 	if result != "MQTT" {
 		t.Fatalf("Got %s but expected MQTT.", result)
-	} 
-}
-
-func TestIsValidClientIDValid(t *testing.T) {
-	// Given: a sequence of valid characters for client ids
-	ids := []string{"thisisvalid", "123456789098766543", "thisisvalidnitis23chars", "o"}
-	// When: we ask if they're valid
-	// Then: we get true
-	for _, id := range ids {
-		if IsValidClientID(id) != true {
-			t.Fatalf("client id %s should be valid.", id)
-		} 
-	} 
-}
-
-func TestIsValidClientIDInvalid(t *testing.T) {
-	// Given: a sequence of invalid characters for client ids
-	ids := []string{"notvalid has space", "thisistoolonggggggggggggggggggggg", 
-	"thisisnotvalidbecauseithas-", "%!@#$%", " tryit ", "golang_12345", ""}
-	// When: we ask if they're valid
-	// Then: we get false
-	for _, id := range ids {
-		if IsValidClientID(id) != false {
-			t.Fatalf("client id \"%s\" should be invalid.", id)
-		} 
-	} 
+	}
 }

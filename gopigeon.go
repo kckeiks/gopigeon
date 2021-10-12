@@ -6,6 +6,11 @@ import (
 	"os"
 )
 
+func init() {
+	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
+	clientIDSet = &idSet{set: make(map[string]struct{})}
+}
+
 func ListenAndServe() {
 	ln, err := net.Listen("tcp", ":8080")
 	if err != nil {
@@ -22,10 +27,9 @@ func ListenAndServe() {
 }
 
 func HandleConn(c net.Conn) error {
-	defer c.Close()
 	connection := &MQTTConn{Conn: c}
+	defer HandleDisconnect(connection)
 	fh, err := ReadFixedHeader(c)
-	fmt.Printf("Fixed Header: %+v\n", fh)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -41,23 +45,22 @@ func HandleConn(c net.Conn) error {
 	}
 	for {
 		fh, err := ReadFixedHeader(c)
-		fmt.Printf("Fixed Header: %+v\n", fh)
 		if err != nil {
 			fmt.Println(err)
 			return err
-		}	
+		}
 		switch fh.PktType {
 		case Publish:
 			err = HandlePublish(c, fh)
 		case Subscribe:
-			err = HandleSubscribe(c, fh)
+			err = HandleSubscribe(connection, fh)
 		case Connect:
 			err = SecondConnectPktError
 		case Disconnect:
 			return nil
 		default:
 			fmt.Println("warning: unknonw packet")
-    	}
+		}
 		if err != nil {
 			fmt.Println(err)
 			return err
