@@ -11,4 +11,5 @@ var (
 	ExpectingConnectPktError = errors.New("expecting a connect pkt")
 	InvalidClientIDError     = errors.New("invalid client id")
 	UniqueClientIDError      = errors.New("client id is not unique")
+	UnknownTopicError        = errors.New("unknown topic")
 )

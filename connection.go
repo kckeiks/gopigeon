@@ -1,7 +1,6 @@
 package gopigeon
 
 import (
-	"errors"
 	"math/rand"
 	"net"
 	"strings"
@@ -57,7 +56,7 @@ func (s *Subscribers) getSubscribers(topic string) ([]*MQTTConn, error) {
 	if ok {
 		return subs, nil
 	}
-	return nil, errors.New("NA_TOPIC")
+	return nil, UnknownTopicError
 }
 
 func NewClientID() string {

@@ -43,7 +43,7 @@ func TestGetSubscribersFail(t *testing.T) {
 	// When: we try to find the subs for the topic in the table
 	_, err := subscribers.getSubscribers(unknownTopic)
 	// Then: We get an error
-	if err == nil {
+	if err != UnknownTopicError {
 		t.Fatalf("getSubscribers did not returned an error.")
 	}
 	_, ok := subscribers.subscribers[unknownTopic]
