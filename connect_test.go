@@ -1,6 +1,8 @@
 package gopigeon
 
 import (
+	"bytes"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -126,13 +128,14 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 }
 
 func TestHandleConnectValidClientID(t *testing.T) {
-	// Given: connect pkt with client id of size zero
-	fh, cp := newTestConnectRequest(&ConnectPacket{
+	// Given: connect pkt with non-zero length client id
+	decodedConnect := &ConnectPacket{
 		protocolName:"MQTT",
 		protocolLevel:4,
 		cleanSession:1,
-		payload: []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64},
-	})
+		payload: []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64}, // testid
+	}
+	fh, cp := newTestConnectRequest(decodedConnect)
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(cp[2:])
 	// When: we handle the connection
@@ -142,7 +145,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 		t.Fatalf("unexpected error %s", err)
 	}
 	// Then: We set the state with the 
-	expectedResult := "testid"
+	expectedResult, _ := ReadEncodedStr(bytes.NewBuffer(decodedConnect.payload))
 	if conn.ClientID != expectedResult {
 		t.Fatalf("expected %s but instead got %s", expectedResult, conn.ClientID)
 	} 
@@ -166,19 +169,69 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 	}
 }
 
-
-func TestHandleConnectWhenClientIDIsUnique(t *testing.T) {
-	
-}
-
 func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
-	
-}
-
-func TestHandleConnectZeroLengthClientIDHandling(t *testing.T) {
-	
+	// Given: client ID set with some keys
+	clientIDSet = &idSet{set: make(map[string]struct{})}
+	// Given: our client ID is in the set so not unique
+	encodedClientID := []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64}
+	decodedClientID, _ := ReadEncodedStr(bytes.NewBuffer(encodedClientID))
+	fmt.Println(decodedClientID)
+	clientIDSet.set[decodedClientID] = struct{}{}
+	fmt.Printf("%+v\n", clientIDSet)
+	// Given: connect pkt with non-zero length client id
+	fh, cp := newTestConnectRequest(&ConnectPacket{
+		protocolName:"MQTT",
+		protocolLevel:4,
+		cleanSession:1,
+		payload: encodedClientID,
+	})
+	// Given: a connection with the connect pkt
+	conn := newTestMQTTConn(cp[2:])
+	// When: we handle the connection
+	err := HandleConnect(conn, fh)
+	// Then: there is an error
+	if err != UniqueClientIDError {
+		t.Fatalf("expected UniqueClientIDError but got %s", err.Error())
+	}
 }
 
 func TestHandleClose(t *testing.T) {
-	// This tests that things get cleaned up
+	// Given: we have a connection (client) in our subscribers table for some topic
+	topic := "sometopic"
+	connection := addTestSubscriber(topic)
+	connection.ClientID = "testclientid"
+	// assert
+	subscribed := false
+	subscriberResult, _ := subscribers.getSubscribers(topic)
+	for _, s := range subscriberResult {
+		if s.ClientID == connection.ClientID {
+			subscribed = true
+		}
+	}
+	if !subscribed {
+		t.Fatalf("given failed: client was not added to subscriber table")
+	}
+	// Given: we have the connection's client ID in our client ID set
+	clientIDSet = &idSet{set: make(map[string]struct{})}
+	clientIDSet.set[connection.ClientID] = struct{}{}
+	// assert
+	if clientIDSet.isClientIDUnique(connection.ClientID) {
+		t.Fatalf("given failed: client id should be not be unique because it should have been added")
+	}
+	// When: there is a disconnect
+	HandleDisconnect(connection)
+	// Then: the client is not in our subscribers table
+	subscriberResult, err := subscribers.getSubscribers(topic)
+	if err != nil {
+		t.Fatalf("unexpected error %+v\n", err)
+	}
+	for _, s := range subscriberResult {
+		if s.ClientID == connection.ClientID {
+			t.Fatalf("expected connection (client) to have been removed from table")
+		}
+	}
+	// Then: the client's client id is not in our client id set
+	if !clientIDSet.isClientIDUnique(connection.ClientID) {
+		t.Fatalf("client id should be unique")
+	}
 }

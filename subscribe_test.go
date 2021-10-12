@@ -10,6 +10,7 @@ func addTestSubscriber(topic string) *MQTTConn {
 	sub := newTestMQTTConn([]byte{})
 	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
 	subscribers.subscribers[topic] = []*MQTTConn{sub}
+	sub.Topics = append(sub.Topics, topic)
 	return sub
 }
 
