@@ -33,7 +33,10 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	// Given: a connection with a client
 	c := &testConn{}
 	// Given: a non-connect packet
-	pp := NewTestEncodedPublishPkt()
+	_, pp := newTestPublishRequest(PublishPacket{
+		Topic: "testtopic",
+		Payload: []byte{0, 1},
+	})
 	c.Write(pp)
 	// When: we send this packet as the first one
 	err := HandleConn(c)
