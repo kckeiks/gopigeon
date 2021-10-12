@@ -121,3 +121,9 @@ func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	}
 	return &FixedHeader{PktType: Subscribe, RemLength: remLen}, subscribe
 }
+
+func addTestSubscriber(c *MQTTConn, topic string) {
+	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
+	subscribers.subscribers[topic] = []*MQTTConn{c}
+	c.Topics = append(c.Topics, topic)
+}

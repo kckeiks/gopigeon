@@ -6,14 +6,6 @@ import (
 	"testing"
 )
 
-func addTestSubscriber(topic string) *MQTTConn {
-	sub := newTestMQTTConn([]byte{})
-	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
-	subscribers.subscribers[topic] = []*MQTTConn{sub}
-	sub.Topics = append(sub.Topics, topic)
-	return sub
-}
-
 func TestDecodeSubscribePacketSuccess(t *testing.T) {
 	// Given: a slice/stream of bytes that represent a subscribe pkt
 	expectedResult := SubscribePacket{
@@ -76,7 +68,8 @@ func TestAddSubscriberSuccess(t *testing.T) {
 func TestGetSubscribersSuccess(t *testing.T) {
 	// Given: we have to table of subscriber
 	// Given: an existing topic
-	sub := addTestSubscriber("testtopic")
+	sub := newTestMQTTConn([]byte{})
+	addTestSubscriber(sub, "testtopic")
 	// When: we try to find the subs for the topic in the table
 	result, err := subscribers.getSubscribers("testtopic")
 	// Then: We get the right list of subs
@@ -90,7 +83,8 @@ func TestGetSubscribersSuccess(t *testing.T) {
 
 func TestGetSubscribersFail(t *testing.T) {
 	// Given: we have to table of subscriber
-	addTestSubscriber("testtopic")
+	sub := newTestMQTTConn([]byte{})
+	addTestSubscriber(sub, "testtopic")
 	// Given: a non existing topic
 	unknownTopic := "foo"
 	// When: we try to find the subs for the topic in the table

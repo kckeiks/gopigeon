@@ -195,8 +195,9 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 func TestHandleClose(t *testing.T) {
 	// Given: we have a connection (client) in our subscribers table for some topic
 	topic := "sometopic"
-	connection := addTestSubscriber(topic)
+	connection := newTestMQTTConn([]byte{})
 	connection.ClientID = "testclientid"
+	addTestSubscriber(connection, topic)
 	// assert
 	subscribed := false
 	subscriberResult, _ := subscribers.getSubscribers(topic)
