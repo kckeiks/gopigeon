@@ -104,6 +104,31 @@ func encodeStr(s string) []byte {
 	return append(encodedStr, b...)
 }
 
+func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
+	// Packet data
+	packetIdBuf := make([]byte, PacketIDLen)
+	binary.BigEndian.PutUint16(packetIdBuf, sp.PacketID)
+	payloadLen := 0
+	for _, p := range sp.Payload {
+		// 2 is the length of the bytes that encode the str len
+		// 1 is for the QoS byte
+		payloadLen += 2 + len(p.TopicFilter) + 1
+	}
+	// header data
+	pktType := Subscribe << 4
+	pktType = pktType | 2 //reserved 0010
+	remLen := uint32(len(packetIdBuf) + payloadLen)
+	// build packet in bytes
+	subscribe := []byte{byte(pktType)}
+	subscribe = append(subscribe, EncodeRemLength(remLen)...)
+	subscribe = append(subscribe, packetIdBuf...)
+	for _, p := range sp.Payload {
+		subscribe = append(subscribe, encodeStr(p.TopicFilter)...)
+		subscribe = append(subscribe, p.QoS)
+	}
+	return &FixedHeader{PktType: Subscribe, RemLength: remLen}, subscribe
+}
+
 func NewTestEncodedSubscribePkt() []byte {
 	return []byte{130, 14, 0, 1, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 0}
 }
