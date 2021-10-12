@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"sync"
 	"errors"
-	"fmt"
 )
 
 var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
@@ -58,6 +57,7 @@ func HandleSubscribe(c *MQTTConn, fh *FixedHeader) error {
 	sp, err := DecodeSubscribePacket(b)
 	for _, payload := range sp.Payload {
 		subscribers.addSubscriber(c, payload.TopicFilter)
+		c.Topics = append(c.Topics, payload.TopicFilter)
 	}
 	esp := EncodeSubackPacket(sp.PacketID)
 	_, err = c.Conn.Write(esp)	
@@ -90,12 +90,7 @@ func (s *Subscribers) removeSubscriber(c *MQTTConn, topic string) {
 		return 
 	} 
 	for i, sub := range subs {
-		// fmt.Printf("c.ClientID %+v\n", c.ClientID)
-		// fmt.Printf("sub.ClientID %+v\n", sub.ClientID)
-		// fmt.Printf("c.ClientID == sub.ClientID %+v\n", c.ClientID == sub.ClientID)
-
 		if c.ClientID == sub.ClientID {
-			fmt.Printf("%+v\n", c)
 			s.subscribers[topic] = append(s.subscribers[topic][:i], s.subscribers[topic][i+1:]...)
 		} 
 	}
