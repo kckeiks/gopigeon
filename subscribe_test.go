@@ -19,7 +19,7 @@ func TestDecodeSubscribePacketSuccess(t *testing.T) {
 		PacketID: 1,
 		Payload: []SubscribePayload{SubscribePayload{TopicFilter: "testtopic", QoS: 0}},
 	}
-	_, sp := newTestSubscribeRequest(SubscribePacket)
+	_, sp := newTestSubscribeRequest(expectedResult)
 	// When: we decoded it
 	result, err := DecodeSubscribePacket(sp[2:])
 	// Then: we get a SubscribePacket struct
@@ -33,12 +33,10 @@ func TestDecodeSubscribePacketSuccess(t *testing.T) {
 
 func TestHandleSubscribeSuccess(t *testing.T) {
 	// Given: a connection/ReaderWriter with which we will be able to read a subscribe package
-	sp := NewTestEncodedSubscribePkt()
-	fh := &FixedHeader{
-		PktType: Subscribe,
-		Flags: 2, 
-		RemLength: 14,
-	}
+	fh, sp := newTestSubscribeRequest(SubscribePacket{
+		PacketID: 1,
+		Payload: []SubscribePayload{SubscribePayload{TopicFilter: "testtopic", QoS: 0}},
+	})
 	// without header
 	c := newTestMQTTConn(sp[2:])
 	// When: we handle the connection
