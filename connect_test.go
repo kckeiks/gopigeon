@@ -2,7 +2,6 @@ package gopigeon
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -175,9 +174,7 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	// Given: our client ID is in the set so not unique
 	encodedClientID := []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64}
 	decodedClientID, _ := ReadEncodedStr(bytes.NewBuffer(encodedClientID))
-	fmt.Println(decodedClientID)
 	clientIDSet.set[decodedClientID] = struct{}{}
-	fmt.Printf("%+v\n", clientIDSet)
 	// Given: connect pkt with non-zero length client id
 	fh, cp := newTestConnectRequest(&ConnectPacket{
 		protocolName:"MQTT",

@@ -3,7 +3,6 @@ package gopigeon
 import (
     "bytes"
     "io"
-    // "fmt"
 )
 
 const (   

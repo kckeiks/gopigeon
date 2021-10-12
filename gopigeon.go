@@ -25,7 +25,6 @@ func HandleConn(c net.Conn) error {
 	connection := &MQTTConn{Conn: c}
 	defer HandleDisconnect(connection)
 	fh, err := ReadFixedHeader(c)
-	// fmt.Printf("Fixed Header: %+v\n", fh)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -41,7 +40,6 @@ func HandleConn(c net.Conn) error {
 	}
 	for {
 		fh, err := ReadFixedHeader(c)
-		// fmt.Printf("Fixed Header: %+v\n", fh)
 		if err != nil {
 			fmt.Println(err)
 			return err
