@@ -9,15 +9,15 @@ func TestHandleConnTwoConnects(t *testing.T) {
 	c := &testConn{}
 	// Given: we send two connect packets
 	cp := &ConnectPacket{
-		protocolName:"MQTT",
-		protocolLevel:4, 
-		userNameFlag:0, 
-		psswdFlag:0, 
-		willRetainFlag:0, 
-		willQoSFlag:0, 
-		willFlag:0, 
-		cleanSession:1, 
-		payload : []byte{0, 0},
+		protocolName:   "MQTT",
+		protocolLevel:  4,
+		userNameFlag:   0,
+		psswdFlag:      0,
+		willRetainFlag: 0,
+		willQoSFlag:    0,
+		willFlag:       0,
+		cleanSession:   1,
+		payload:        []byte{0, 0},
 	}
 	c.Write(encodeTestConnectPkt(cp))
 	c.Write(encodeTestConnectPkt(cp))
@@ -34,7 +34,7 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	c := &testConn{}
 	// Given: a non-connect packet
 	_, pp := newTestPublishRequest(PublishPacket{
-		Topic: "testtopic",
+		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})
 	c.Write(pp)

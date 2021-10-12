@@ -1,9 +1,9 @@
 package gopigeon
 
 import (
-	"testing"
-	"reflect"
 	"encoding/binary"
+	"reflect"
+	"testing"
 )
 
 func addTestSubscriber(topic string) *MQTTConn {
@@ -18,7 +18,7 @@ func TestDecodeSubscribePacketSuccess(t *testing.T) {
 	// Given: a slice/stream of bytes that represent a subscribe pkt
 	expectedResult := SubscribePacket{
 		PacketID: 1,
-		Payload: []SubscribePayload{SubscribePayload{TopicFilter: "testtopic", QoS: 0}},
+		Payload:  []SubscribePayload{SubscribePayload{TopicFilter: "testtopic", QoS: 0}},
 	}
 	_, sp := newTestSubscribeRequest(expectedResult)
 	// When: we decoded it
@@ -29,14 +29,14 @@ func TestDecodeSubscribePacketSuccess(t *testing.T) {
 	}
 	if !reflect.DeepEqual(result, &expectedResult) {
 		t.Fatalf("Got PublishPacket %+v but expected %+v,", result, expectedResult)
-	}  
+	}
 }
 
 func TestHandleSubscribeSuccess(t *testing.T) {
 	// Given: a connection/ReaderWriter with which we will be able to read a subscribe package
 	fh, sp := newTestSubscribeRequest(SubscribePacket{
 		PacketID: 1,
-		Payload: []SubscribePayload{SubscribePayload{TopicFilter: "testtopic", QoS: 0}},
+		Payload:  []SubscribePayload{SubscribePayload{TopicFilter: "testtopic", QoS: 0}},
 	})
 	// without header
 	c := newTestMQTTConn(sp[2:])

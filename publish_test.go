@@ -10,7 +10,7 @@ import (
 func TestDecodePublishPacket(t *testing.T) {
 	// Given: a stream/slice of bytes that represents a connect pkt
 	expectedResult := PublishPacket{
-		Topic: "testtopic",
+		Topic:   "testtopic",
 		Payload: []byte{116, 101, 115, 116, 109, 115, 103},
 	}
 	_, pp := newTestPublishRequest(expectedResult)
@@ -23,7 +23,7 @@ func TestDecodePublishPacket(t *testing.T) {
 	}
 	if !reflect.DeepEqual(result, &expectedResult) {
 		t.Fatalf("Got PublishPacket %+v but expected %+v,", result, &expectedResult)
-	}  
+	}
 }
 
 func TestHandlePublish(t *testing.T) {
@@ -31,11 +31,11 @@ func TestHandlePublish(t *testing.T) {
 	subscriber := addTestSubscriber("testtopic")
 	// Given: a Publish packet in bytes
 	fh, pp := newTestPublishRequest(PublishPacket{
-		Topic: "testtopic",
+		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})
-	// Given: we can read our Publish packet from a ReadWriter 
-	rr := bytes.NewBuffer(pp[2:])  // we omit the header
+	// Given: we can read our Publish packet from a ReadWriter
+	rr := bytes.NewBuffer(pp[2:]) // we omit the header
 	// When: we handle a connnect packet and pass the ReadWriter
 	err := HandlePublish(rr, fh)
 	// Then: the ReadWriter will have the Connack pkt representation in bytes

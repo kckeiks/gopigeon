@@ -43,7 +43,7 @@ func HandleConn(c net.Conn) error {
 		if err != nil {
 			fmt.Println(err)
 			return err
-		}	
+		}
 		switch fh.PktType {
 		case Publish:
 			err = HandlePublish(c, fh)
@@ -55,7 +55,7 @@ func HandleConn(c net.Conn) error {
 			return nil
 		default:
 			fmt.Println("warning: unknonw packet")
-    	}
+		}
 		if err != nil {
 			fmt.Println(err)
 			return err

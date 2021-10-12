@@ -2,27 +2,27 @@ package gopigeon
 
 import (
 	"bytes"
-	"io"
 	"encoding/binary"
-	"sync"
 	"errors"
+	"io"
+	"sync"
 )
 
 var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
 
 type Subscribers struct {
-	mu sync.Mutex
+	mu          sync.Mutex
 	subscribers map[string][]*MQTTConn
 }
 
 type SubscribePayload struct {
 	TopicFilter string
-	QoS byte
+	QoS         byte
 }
 
 type SubscribePacket struct {
 	PacketID uint16
-	Payload []SubscribePayload
+	Payload  []SubscribePayload
 }
 
 func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
@@ -50,25 +50,25 @@ func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 
 func HandleSubscribe(c *MQTTConn, fh *FixedHeader) error {
 	b := make([]byte, fh.RemLength)
-    _, err := io.ReadFull(c.Conn, b)
-    if (err != nil) {
-        return err
-    }
+	_, err := io.ReadFull(c.Conn, b)
+	if err != nil {
+		return err
+	}
 	sp, err := DecodeSubscribePacket(b)
 	for _, payload := range sp.Payload {
 		subscribers.addSubscriber(c, payload.TopicFilter)
 		c.Topics = append(c.Topics, payload.TopicFilter)
 	}
 	esp := EncodeSubackPacket(sp.PacketID)
-	_, err = c.Conn.Write(esp)	
-	if (err != nil) {
-        return err
-    }
+	_, err = c.Conn.Write(esp)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func EncodeSubackPacket(pktID uint16) []byte {
-    var pktType byte = Suback << 4
+	var pktType byte = Suback << 4
 	var remLength byte = 2
 	fixedHeader := []byte{pktType, remLength}
 	pID := make([]byte, 2)
@@ -87,14 +87,14 @@ func (s *Subscribers) removeSubscriber(c *MQTTConn, topic string) {
 	defer s.mu.Unlock()
 	subs, ok := s.subscribers[topic]
 	if !ok {
-		return 
-	} 
+		return
+	}
 	for i, sub := range subs {
 		if c.ClientID == sub.ClientID {
 			s.subscribers[topic] = append(s.subscribers[topic][:i], s.subscribers[topic][i+1:]...)
-		} 
+		}
 	}
-} 
+}
 
 func (s *Subscribers) getSubscribers(topic string) ([]*MQTTConn, error) {
 	s.mu.Lock()
