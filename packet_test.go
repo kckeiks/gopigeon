@@ -205,3 +205,26 @@ func TestIsValidClientIDInvalid(t *testing.T) {
 		} 
 	} 
 }
+
+func TestWhenClientIDIsUnique(t *testing.T) {
+	// Given: client ID set with some key
+	clientIDSet = &idSet{set: make(map[string]struct{})}
+	// Given: our client ID is not in the set
+	clientID := "unique"
+	// When: client ID
+	if !clientIDSet.isClientIDUnique(clientID) {
+		t.Fatalf("client id should be unique")
+	}
+}
+
+func TestWhenClientIDIsNotUnique(t *testing.T) {
+	// Given: client ID set with some key
+	clientIDSet = &idSet{set: make(map[string]struct{})}
+	// Given: our client ID is in the set
+	clientID := "notunique"
+	clientIDSet.set[clientID] = struct{}{}
+	// When: client ID
+	if clientIDSet.isClientIDUnique(clientID) {
+		t.Fatalf("client id should not be unique")
+	}
+}

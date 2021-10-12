@@ -125,3 +125,13 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
     }
     return nil
 }
+
+func HandleDisconnect(c *MQTTConn) {
+	// remove connection from subscription table for all of topics that it subscribed to
+	for _, topic := range c.Topics {
+		subscribers.removeSubscriber(c, topic)
+	}
+	// remove ClientID from ID set
+	clientIDSet.removeClientID(c.ClientID)
+	c.Conn.Close()
+}

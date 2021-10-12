@@ -165,3 +165,20 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 		t.Fatalf("expected InvalidClientIDError but got %s", err.Error())
 	}
 }
+
+
+func TestHandleConnectWhenClientIDIsUnique(t *testing.T) {
+	
+}
+
+func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
+	
+}
+
+func TestHandleConnectZeroLengthClientIDHandling(t *testing.T) {
+	
+}
+
+func TestHandleClose(t *testing.T) {
+	// This tests that things get cleaned up
+}

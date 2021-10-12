@@ -56,7 +56,6 @@ func HandleConn(c net.Conn) error {
 		case Disconnect:
 			return nil
 		default:
-			//fmt.Printf("FFixed Header: %+v\n", fh)
 			fmt.Println("warning: unknonw packet")
     	}
 		if err != nil {
@@ -65,14 +64,4 @@ func HandleConn(c net.Conn) error {
 		}
 	}
 	return nil
-}
-
-func HandleDisconnect(c *MQTTConn) {
-	// remove connection from subscription table for all of topics that it subscribed to
-	for _, topic := range c.Topics {
-		subscribers.removeSubscriber(c, topic)
-	}
-	// remove ClientID from ID set
-	clientIDSet.removeClientID(c.ClientID)
-	c.Conn.Close()
 }
