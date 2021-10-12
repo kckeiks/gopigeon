@@ -97,13 +97,6 @@ func newTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
 	return &FixedHeader{PktType: Publish, RemLength: remLen}, publish
 }
 
-func encodeStr(s string) []byte {
-	b := []byte(s)
-	encodedStr := make([]byte, 2)
-	binary.BigEndian.PutUint16(encodedStr, uint16(len(b)))  // prefix with len
-	return append(encodedStr, b...)
-}
-
 func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	// Packet data
 	packetIdBuf := make([]byte, PacketIDLen)

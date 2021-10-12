@@ -173,3 +173,10 @@ func (s *idSet) isClientIDUnique(id string) bool {
 	_, ok := s.set[id]
 	return !ok
 }
+
+func encodeStr(s string) []byte {
+	b := []byte(s)
+	encodedStr := make([]byte, 2)
+	binary.BigEndian.PutUint16(encodedStr, uint16(len(b)))  // prefix with len
+	return append(encodedStr, b...)
+}

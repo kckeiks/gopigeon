@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"sync"
 	"errors"
+	"fmt"
 )
 
 var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
@@ -81,6 +82,25 @@ func (s *Subscribers) addSubscriber(c *MQTTConn, topic string) {
 	s.mu.Unlock()
 }
 
+func (s *Subscribers) removeSubscriber(c *MQTTConn, topic string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	subs, ok := s.subscribers[topic]
+	if !ok {
+		return 
+	} 
+	for i, sub := range subs {
+		// fmt.Printf("c.ClientID %+v\n", c.ClientID)
+		// fmt.Printf("sub.ClientID %+v\n", sub.ClientID)
+		// fmt.Printf("c.ClientID == sub.ClientID %+v\n", c.ClientID == sub.ClientID)
+
+		if c.ClientID == sub.ClientID {
+			fmt.Printf("%+v\n", c)
+			s.subscribers[topic] = append(s.subscribers[topic][:i], s.subscribers[topic][i+1:]...)
+		} 
+	}
+} 
+
 func (s *Subscribers) getSubscribers(topic string) ([]*MQTTConn, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -89,4 +109,4 @@ func (s *Subscribers) getSubscribers(topic string) ([]*MQTTConn, error) {
 		return subs, nil
 	}
 	return nil, errors.New("NA_TOPIC")
-} 
+}

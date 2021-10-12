@@ -22,8 +22,8 @@ func ListenAndServe() {
 }
 
 func HandleConn(c net.Conn) error {
-	defer c.Close()
 	connection := &MQTTConn{Conn: c}
+	defer HandleDisconnect(connection)
 	fh, err := ReadFixedHeader(c)
 	// fmt.Printf("Fixed Header: %+v\n", fh)
 	if err != nil {
@@ -65,4 +65,11 @@ func HandleConn(c net.Conn) error {
 		}
 	}
 	return nil
+}
+
+func HandleDisconnect(c *MQTTConn) {
+	for _, topic := range c.Topics {
+		subscribers.removeSubscriber(c, topic)
+	}
+	c.Conn.Close()
 }
