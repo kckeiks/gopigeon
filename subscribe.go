@@ -3,17 +3,8 @@ package gopigeon
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"io"
-	"sync"
 )
-
-var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
-
-type Subscribers struct {
-	mu          sync.Mutex
-	subscribers map[string][]*MQTTConn
-}
 
 type SubscribePayload struct {
 	TopicFilter string
@@ -74,34 +65,4 @@ func EncodeSubackPacket(pktID uint16) []byte {
 	pID := make([]byte, 2)
 	binary.BigEndian.PutUint16(pID, pktID)
 	return append(fixedHeader, pID...)
-}
-
-func (s *Subscribers) addSubscriber(c *MQTTConn, topic string) {
-	s.mu.Lock()
-	s.subscribers[topic] = append(s.subscribers[topic], c)
-	s.mu.Unlock()
-}
-
-func (s *Subscribers) removeSubscriber(c *MQTTConn, topic string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	subs, ok := s.subscribers[topic]
-	if !ok {
-		return
-	}
-	for i, sub := range subs {
-		if c.ClientID == sub.ClientID {
-			s.subscribers[topic] = append(s.subscribers[topic][:i], s.subscribers[topic][i+1:]...)
-		}
-	}
-}
-
-func (s *Subscribers) getSubscribers(topic string) ([]*MQTTConn, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	subs, ok := s.subscribers[topic]
-	if ok {
-		return subs, nil
-	}
-	return nil, errors.New("NA_TOPIC")
 }

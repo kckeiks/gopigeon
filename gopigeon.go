@@ -6,6 +6,11 @@ import (
 	"os"
 )
 
+func init() {
+	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
+	clientIDSet = &idSet{set: make(map[string]struct{})}
+}
+
 func ListenAndServe() {
 	ln, err := net.Listen("tcp", ":8080")
 	if err != nil {

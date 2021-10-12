@@ -4,11 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
-	"math/rand"
-	"net"
-	"strings"
-	"sync"
-	"time"
 	"unicode"
 	"unicode/utf8"
 )
@@ -35,25 +30,10 @@ const (
 	MaxClientIDLen  = 23
 )
 
-const clientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-var clientIDSet = &idSet{set: make(map[string]struct{})}
-
-type MQTTConn struct {
-	Conn     net.Conn
-	ClientID string
-	Topics   []string
-}
-
 type FixedHeader struct {
 	PktType   byte
 	Flags     byte
 	RemLength uint32
-}
-
-type idSet struct {
-	mu  sync.Mutex
-	set map[string]struct{}
 }
 
 func ReadFixedHeader(r io.Reader) (*FixedHeader, error) {
@@ -106,28 +86,6 @@ func EncodeRemLength(n uint32) []byte {
 	return result
 }
 
-func NewClientID() string {
-	rand.Seed(time.Now().UnixNano())
-	var b strings.Builder
-	b.Grow(MaxClientIDLen)
-	for i := 0; i < MaxClientIDLen; i++ {
-		b.WriteByte(clientIDletters[rand.Intn(len(clientIDletters))])
-	}
-	return b.String()
-}
-
-func IsValidClientID(id string) bool {
-	if len(id) > MaxClientIDLen || len(id) == 0 {
-		return false
-	}
-	for _, r := range id {
-		if (r < '0' || r > '9') && (r < 'A' || r > 'Z') && (r < 'a' || r > 'z') {
-			return false
-		}
-	}
-	return true
-}
-
 func IsValidUTF8Encoded(bytes []byte) bool {
 	if !utf8.Valid(bytes) {
 		return false
@@ -159,25 +117,6 @@ func ReadEncodedStr(r io.Reader) (string, error) {
 		return "", errors.New("")
 	}
 	return string(str), nil
-}
-
-func (s *idSet) saveClientID(id string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.set[id] = struct{}{}
-}
-
-func (s *idSet) isClientIDUnique(id string) bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	_, ok := s.set[id]
-	return !ok
-}
-
-func (s *idSet) removeClientID(id string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	delete(s.set, id)
 }
 
 func encodeStr(s string) []byte {
