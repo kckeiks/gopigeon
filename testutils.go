@@ -85,7 +85,25 @@ func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {
 	return []byte{pktType, remLength, ackFlags, rtrnCode}
 }
 
-// TODO: Maybe refactor these to be more configurable
+func newTestPublishRequest(pp *PublishPacket) (*FixedHeader, []byte) {
+	encodedTopic := encodeStr(pp.Topic)
+	// Note: When QoS is 0 there is no packet id
+	remLen := uint32(len(encodedTopic) + len(pp.Payload))
+	publish := []byte{Publish << 4}  // flags is zero
+	publish = append(publish, EncodeRemLength(remLen)...) // rem len
+	publish = append(publish, encodedTopic...)
+	// Note: When QoS is 0 there is no packet id
+	publish = append(publish, pp.Payload...)
+	return &FixedHeader{PktType: Publish, RemLength: remLen}, publish
+}
+
+func encodeStr(s string) []byte {
+	b := []byte(s)
+	encodedStr := make([]byte, 2)
+	binary.BigEndian.PutUint16(encodedStr, uint16(len(b)))  // prefix with len
+	return append(encodedStr, b...)
+}
+
 func NewTestEncodedPublishPkt() []byte {
 	return []byte{48, 18, 0, 9, 116, 101, 115, 116, 116, 111, 112, 105, 99, 116, 101, 115, 116, 109, 115, 103}
 }
