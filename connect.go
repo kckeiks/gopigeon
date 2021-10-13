@@ -83,6 +83,9 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
+	if fh.Flags != 0 {
+		return ConnectFixedHdrReservedFlagError
+	}
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(c.Conn, b)
 	if err != nil {

@@ -15,5 +15,6 @@ var (
 )
 
 var (
-	ConnectReserveFlagError = errors.New("connect reserved flag must be zero")
+	ConnectFixedHdrReservedFlagError = errors.New("connect reserved flag in fixed header must be zero")
+	ConnectReserveFlagError          = errors.New("connect reserved flag must be zero")
 )

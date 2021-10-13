@@ -101,15 +101,14 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 }
 
 func TestHandleConnectPacketSuccess(t *testing.T) {
-	// Given: a ReadWriter implementation like bytes.Buffer or net.Conn
-	// Given: we can read our Connect packet from a ReadWriter
-	fh, cp := newTestConnectRequest(&ConnectPacket{
+	// Given: A connect request for the wire
+	fh, connect := newTestConnectRequest(&ConnectPacket{
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
 	})
 	// Given: mqtt connection that has the pkt in its buffer
-	conn := newTestMQTTConn(cp[2:])
+	conn := newTestMQTTConn(connect[2:])
 	// When: we handle a connnect packet
 	err := HandleConnect(conn, fh)
 	// Then: no error
@@ -126,15 +125,34 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 	}
 }
 
-func TestHandleConnectCreateClientID(t *testing.T) {
-	// Given: connect pkt with client id of size zero
-	fh, cp := newTestConnectRequest(&ConnectPacket{
+func TestHandleConnectPacketInvalidFixedHdrReservedFlag(t *testing.T) {
+	// Given: A connect request for the wire
+	fh, connect := newTestConnectRequest(&ConnectPacket{
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
 	})
-	// Given: a connection with the connect pkt
-	conn := newTestMQTTConn(cp[2:])
+	// Given: reserved flag in header is not 0
+	fh.Flags = 1
+	// Given: mqtt connection that has the pkt in its buffer
+	conn := newTestMQTTConn(connect[2:])
+	// When: we handle a connnect packet
+	err := HandleConnect(conn, fh)
+	// Then: we get an error
+	if err != ConnectFixedHdrReservedFlagError {
+		t.Fatalf("expected ConnectFixedHdrReservedFlagError but instead got %s", err)
+	}
+}
+
+func TestHandleConnectCreateClientID(t *testing.T) {
+	// Given: encoded connect pkt with client id of size zero
+	fh, connect := newTestConnectRequest(&ConnectPacket{
+		protocolName:  "MQTT",
+		protocolLevel: 4,
+		cleanSession:  1,
+	})
+	// Given: a connection with the connect
+	conn := newTestMQTTConn(connect[2:])
 	// When: we handle the connection
 	HandleConnect(conn, fh)
 	// Then: we change the state of the connection
@@ -145,16 +163,16 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 }
 
 func TestHandleConnectValidClientID(t *testing.T) {
-	// Given: connect pkt with non-zero length client id
+	// Given: encoded connect pkt with non-zero length client id
 	decodedConnect := &ConnectPacket{
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
 		payload:       []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64}, // testid
 	}
-	fh, cp := newTestConnectRequest(decodedConnect)
+	fh, connect := newTestConnectRequest(decodedConnect)
 	// Given: a connection with the connect pkt
-	conn := newTestMQTTConn(cp[2:])
+	conn := newTestMQTTConn(connect[2:])
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is no error
@@ -169,15 +187,15 @@ func TestHandleConnectValidClientID(t *testing.T) {
 }
 
 func TestHandleConnectInvalidClientID(t *testing.T) {
-	// Given: connect pkt with client id of size zero
-	fh, cp := newTestConnectRequest(&ConnectPacket{
+	// Given: encoded connect pkt with client id of size zero
+	fh, connect := newTestConnectRequest(&ConnectPacket{
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
 		payload:       []byte{0x00, 0x07, 0x74, 0x20, 0x65, 0x73, 0x74, 0x69, 0x64},
 	})
 	// Given: a connection with the connect pkt
-	conn := newTestMQTTConn(cp[2:])
+	conn := newTestMQTTConn(connect[2:])
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is an error
@@ -193,15 +211,15 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	encodedClientID := []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64}
 	decodedClientID, _ := ReadEncodedStr(bytes.NewBuffer(encodedClientID))
 	clientIDSet.set[decodedClientID] = struct{}{}
-	// Given: connect pkt with non-zero length client id
-	fh, cp := newTestConnectRequest(&ConnectPacket{
+	// Given: encoded connect pkt with non-zero length client id
+	fh, connect := newTestConnectRequest(&ConnectPacket{
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
 		payload:       encodedClientID,
 	})
 	// Given: a connection with the connect pkt
-	conn := newTestMQTTConn(cp[2:])
+	conn := newTestMQTTConn(connect[2:])
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is an error
