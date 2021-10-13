@@ -13,3 +13,7 @@ var (
 	UniqueClientIDError      = errors.New("client id is not unique")
 	UnknownTopicError        = errors.New("unknown topic")
 )
+
+var (
+	ConnectReserveFlagError  = errors.New("connect reserved flag must be zero")
+)
