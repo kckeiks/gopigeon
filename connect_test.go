@@ -26,6 +26,24 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 	}
 }
 
+func TestDecodeConnectPacketInvalidReservedFlag(t *testing.T) {
+	// Given: a stream/slice of bytes that represents a connect pkt
+	// Given: connect reserved flag bit is not zero
+	_, cp := newTestConnectRequest(&ConnectPacket{
+		protocolName:  "MQTT",
+		protocolLevel: 4,
+		cleanSession:  1,
+	})
+	cp[len(cp)-5] = 3
+	// When: we try to decoded it
+	// we pass the packet without the fixed header
+	_, err := DecodeConnectPacket(cp[2:])
+	// Then: we get an error
+	if err != ConnectReserveFlagError {
+		t.Fatalf("expected ConnectReserveFlagError but instead got %d", err)
+	}
+}
+
 func TestDecodeConnectPacketInvalidProtocolName(t *testing.T) {
 	// Given: a stream/slice of bytes that represents a connect pkt
 	expectedResult := &ConnectPacket{
