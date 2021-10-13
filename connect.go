@@ -45,7 +45,9 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
 	if err != nil {
 		return nil, err
 	}
-	// keepAlive := make([]byte, KeepAliveFieldLen)
+	if (connectFlags & 1) != 0 {
+		return nil, ConnectReserveFlagError
+	}
 	keepAlive := [KeepAliveFieldLen]byte{}
 	_, err = io.ReadFull(buf, keepAlive[:])
 	if err != nil {
@@ -60,12 +62,12 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
 	cp := &ConnectPacket{
 		protocolName:   protocol,
 		protocolLevel:  protocolLevel,
-		userNameFlag:   connectFlags >> 7,
-		psswdFlag:      connectFlags >> 6,
-		willRetainFlag: connectFlags >> 5,
-		willQoSFlag:    connectFlags >> 3,
-		willFlag:       connectFlags >> 2,
-		cleanSession:   connectFlags >> 1,
+		userNameFlag:   (connectFlags >> 7) & 1,
+		psswdFlag:      (connectFlags >> 6) & 1,
+		willRetainFlag: (connectFlags >> 5) & 1,
+		willQoSFlag:    (connectFlags >> 3) & 3, // 3rd and 4th bits
+		willFlag:       (connectFlags >> 2) & 1,
+		cleanSession:   (connectFlags >> 1) & 1,
 		keepAlive:      keepAlive,
 		payload:        payload,
 	}
@@ -81,6 +83,9 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
+	if fh.Flags != 0 {
+		return ConnectFixedHdrReservedFlagError
+	}
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(c.Conn, b)
 	if err != nil {
