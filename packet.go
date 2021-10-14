@@ -101,6 +101,20 @@ func IsValidUTF8Encoded(bytes []byte) bool {
 	return true
 }
 
+func ReadEncodedBytes(r io.Reader) ([]byte, error) {
+	lenBuf := make([]byte, StrlenLen)
+	_, err := io.ReadFull(r, lenBuf)
+	if err != nil {
+		return nil, err
+	}
+	b := make([]byte, binary.BigEndian.Uint16(lenBuf))
+	_, err = io.ReadFull(r, b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
 // TODO: Fix this function
 func ReadEncodedStr(r io.Reader) (string, error) {
 	b := make([]byte, StrlenLen)
@@ -121,7 +135,19 @@ func ReadEncodedStr(r io.Reader) (string, error) {
 
 func encodeStr(s string) []byte {
 	b := []byte(s)
-	encodedStr := make([]byte, 2)
-	binary.BigEndian.PutUint16(encodedStr, uint16(len(b))) // prefix with len
-	return append(encodedStr, b...)
+	encodedStrLen := make([]byte, 2)
+	binary.BigEndian.PutUint16(encodedStrLen, uint16(len(b))) // prefix with len
+	if len(b) > int(binary.BigEndian.Uint16(encodedStrLen)) {
+		panic("could not encode string")
+	}
+	return append(encodedStrLen, b...)
+}
+
+func encodeBytes(b []byte) []byte {
+	encodedStrLen := make([]byte, 2)
+	binary.BigEndian.PutUint16(encodedStrLen, uint16(len(b))) // prefix with len
+	if len(b) > int(binary.BigEndian.Uint16(encodedStrLen)) {
+		panic("could not encode bytes")
+	}
+	return append(encodedStrLen, b...)
 }

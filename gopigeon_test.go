@@ -17,7 +17,7 @@ func TestHandleConnTwoConnects(t *testing.T) {
 		willQoSFlag:    0,
 		willFlag:       0,
 		cleanSession:   1,
-		payload:        []byte{0, 0},
+		clientID:       "",
 	}
 	c.Write(encodeTestConnectPkt(cp))
 	c.Write(encodeTestConnectPkt(cp))

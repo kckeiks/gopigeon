@@ -1,7 +1,7 @@
 package gopigeon
 
 import (
-	"bytes"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -34,6 +34,7 @@ func TestDecodeConnectPacketInvalidReservedFlag(t *testing.T) {
 		protocolLevel: 4,
 		cleanSession:  1,
 	})
+	fmt.Printf("%+v\n", cp)
 	cp[len(cp)-5] = 3
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
@@ -168,7 +169,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
-		payload:       []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64}, // testid
+		clientID:      "testid",
 	}
 	fh, connect := newTestConnectRequest(decodedConnect)
 	// Given: a connection with the connect pkt
@@ -180,7 +181,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 		t.Fatalf("unexpected error %s", err)
 	}
 	// Then: We set the state with the
-	expectedResult, _ := ReadEncodedStr(bytes.NewBuffer(decodedConnect.payload))
+	expectedResult := decodedConnect.clientID
 	if conn.ClientID != expectedResult {
 		t.Fatalf("expected %s but instead got %s", expectedResult, conn.ClientID)
 	}
@@ -192,7 +193,7 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
-		payload:       []byte{0x00, 0x07, 0x74, 0x20, 0x65, 0x73, 0x74, 0x69, 0x64},
+		clientID:      "t estid", // has space
 	})
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(connect[2:])
@@ -208,15 +209,14 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	// Given: client ID set with some keys
 	clientIDSet = &idSet{set: make(map[string]struct{})}
 	// Given: our client ID is in the set so not unique
-	encodedClientID := []byte{0x00, 0x06, 0x74, 0x65, 0x73, 0x74, 0x69, 0x64}
-	decodedClientID, _ := ReadEncodedStr(bytes.NewBuffer(encodedClientID))
-	clientIDSet.set[decodedClientID] = struct{}{}
+	clientID := "testid"
+	clientIDSet.set[clientID] = struct{}{}
 	// Given: encoded connect pkt with non-zero length client id
 	fh, connect := newTestConnectRequest(&ConnectPacket{
 		protocolName:  "MQTT",
 		protocolLevel: 4,
 		cleanSession:  1,
-		payload:       encodedClientID,
+		clientID:      clientID,
 	})
 	// Given: a connection with the connect pkt
 	conn := newTestMQTTConn(connect[2:])
