@@ -52,30 +52,42 @@ func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 }
 
 func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
-	// ugly side effect but will make tests cleaner and less prone to misleading errors
-	if len(cp.payload) == 0 {
-		cp.payload = []byte{0, 0}
-	}
 	connectInBytes := encodeTestConnectPkt(cp)
 	// TODO: encode flags
 	return &FixedHeader{PktType: Connect, RemLength: uint32(len(connectInBytes[2:]))}, connectInBytes
 }
 
 func encodeTestConnectPkt(cp *ConnectPacket) []byte {
+	// protocol name
 	pn := []byte(cp.protocolName)
 	var pnLen = [2]byte{}
 	binary.BigEndian.PutUint16(pnLen[:], uint16(len(pn)))
+	// data in payload
+	payload := append(make([]byte, 0), encodeStr(cp.clientID)...)
+	if cp.willTopic != "" {
+		payload = append(payload, encodeStr(cp.willTopic)...)
+	}
+	if len(cp.willMsg) > 0 {
+		payload = append(payload, encodeBytes(cp.willMsg)...)
+	}
+	if cp.username != "" {
+		payload = append(payload, encodeStr(cp.username)...)
+	}
+	if len(cp.password) > 0 {
+		payload = append(payload, encodeBytes(cp.password)...)
+	}
 	// # of bytes: 4 bytes (protocol level, connect flags, keep alive) +
 	// 2 to encode protocol name len + len of bytes in protocol name + len of payload
-	lenOfPkt := uint32(4 + 2 + len(pn) + len(cp.payload))
+	lenOfPkt := uint32(4 + 2 + len(pn) + len(payload))
 	connect := []byte{Connect << 4}                         // MS nibble has type and LS nibble is reserved e.g. 0
 	connect = append(connect, EncodeRemLength(lenOfPkt)...) // rem length
 	connect = append(connect, pnLen[:]...)                  // add protocol name
 	connect = append(connect, pn...)                        // add protocol name
 	connect = append(connect, cp.protocolLevel)
-	connect = append(connect, 2)          // TODO: connect flags
-	connect = append(connect, 0, 0)       // TODO: Keep Alive
-	return append(connect, cp.payload...) // TODO: Payload
+	connect = append(connect, 2)    // TODO: connect flags
+	connect = append(connect, 0, 0) // TODO: Keep Alive
+	connect = append(connect, payload...)
+	return connect
 }
 
 func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {

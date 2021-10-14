@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	ProtocolLevel     = 4
-	KeepAliveFieldLen = 2
+	ProtocolLevel = 4
 )
 
 type ConnectPacket struct {
@@ -19,8 +18,12 @@ type ConnectPacket struct {
 	willQoSFlag    byte
 	willFlag       byte
 	cleanSession   byte
-	keepAlive      [KeepAliveFieldLen]byte
-	payload        []byte
+	keepAlive      [2]byte
+	clientID       string
+	willTopic      string
+	willMsg        []byte
+	username       string
+	password       []byte
 }
 
 type ConnackPacket struct {
@@ -29,16 +32,18 @@ type ConnackPacket struct {
 }
 
 func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
+	var err error
+	cp := &ConnectPacket{}
 	buf := bytes.NewBuffer(b)
-	protocol, err := ReadEncodedStr(buf)
+	cp.protocolName, err = ReadEncodedStr(buf)
 	if err != nil {
 		return nil, err
 	}
-	if protocol != ProtocolName {
+	if cp.protocolName != ProtocolName {
 		return nil, ProtocolNameError
 	}
-	protocolLevel, err := buf.ReadByte()
-	if err != nil || protocolLevel != ProtocolLevel {
+	cp.protocolLevel, err = buf.ReadByte()
+	if err != nil || cp.protocolLevel != ProtocolLevel {
 		return nil, ProtocolLevelError
 	}
 	connectFlags, err := buf.ReadByte()
@@ -48,28 +53,42 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
 	if (connectFlags & 1) != 0 {
 		return nil, ConnectReserveFlagError
 	}
-	keepAlive := [KeepAliveFieldLen]byte{}
-	_, err = io.ReadFull(buf, keepAlive[:])
+	cp.userNameFlag = (connectFlags >> 7) & 1
+	cp.psswdFlag = (connectFlags >> 6) & 1
+	cp.willRetainFlag = (connectFlags >> 5) & 1
+	cp.willQoSFlag = (connectFlags >> 3) & 3 // 3rd and 4th bits
+	cp.willFlag = (connectFlags >> 2) & 1
+	cp.cleanSession = (connectFlags >> 1) & 1
+	// read Keep Alive
+	_, err = io.ReadFull(buf, cp.keepAlive[:])
 	if err != nil {
 		return nil, err
 	}
-	// read the rest
-	payload := make([]byte, buf.Len())
-	_, err = io.ReadFull(buf, payload)
+	cp.clientID, err = ReadEncodedStr(buf)
 	if err != nil {
 		return nil, err
 	}
-	cp := &ConnectPacket{
-		protocolName:   protocol,
-		protocolLevel:  protocolLevel,
-		userNameFlag:   (connectFlags >> 7) & 1,
-		psswdFlag:      (connectFlags >> 6) & 1,
-		willRetainFlag: (connectFlags >> 5) & 1,
-		willQoSFlag:    (connectFlags >> 3) & 3, // 3rd and 4th bits
-		willFlag:       (connectFlags >> 2) & 1,
-		cleanSession:   (connectFlags >> 1) & 1,
-		keepAlive:      keepAlive,
-		payload:        payload,
+	if cp.willFlag == 1 {
+		cp.willTopic, err = ReadEncodedStr(buf)
+		if err != nil {
+			return nil, err
+		}
+		cp.willMsg, err = ReadEncodedBytes(buf)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if cp.userNameFlag == 1 {
+		cp.username, err = ReadEncodedStr(buf)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if cp.psswdFlag == 1 {
+		cp.password, err = ReadEncodedBytes(buf)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return cp, nil
 }
@@ -83,6 +102,10 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
+	// var willTopic string
+	// var willMsg []byte
+	// var username string
+	// var password string
 	if fh.Flags != 0 {
 		return ConnectFixedHdrReservedFlagError
 	}
@@ -91,39 +114,34 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
 	if err != nil {
 		return err
 	}
-	cp, err := DecodeConnectPacket(b)
+	connectPkt, err := DecodeConnectPacket(b)
 	if err != nil {
 		return err
 	}
-	clientID, err := ReadEncodedStr(bytes.NewBuffer(cp.payload))
-	if err != nil {
-		return err
-	}
-	if len(clientID) == 0 {
-		clientID = NewClientID()
+	if len(connectPkt.clientID) == 0 {
+		connectPkt.clientID = NewClientID()
 		// we try until we get a unique ID
-		for !clientIDSet.isClientIDUnique(clientID) {
-			clientID = NewClientID()
+		for !clientIDSet.isClientIDUnique(connectPkt.clientID) {
+			connectPkt.clientID = NewClientID()
 		}
 	}
-	if !IsValidClientID(clientID) {
+	if !IsValidClientID(connectPkt.clientID) {
 		// Server guarantees id generated will be valid so client sent us invalid id
 		// TODO: send connack with 2 error code
 		return InvalidClientIDError
 	}
-	if !clientIDSet.isClientIDUnique(clientID) {
+	if !clientIDSet.isClientIDUnique(connectPkt.clientID) {
 		// Server guarantees id generated will be unique so client sent us used id
 		// TODO: send connack with 2 error code
 		return UniqueClientIDError
 	}
-	clientIDSet.saveClientID(clientID)
-	c.ClientID = clientID
-	connackPkt := ConnackPacket{
+	clientIDSet.saveClientID(connectPkt.clientID)
+	c.ClientID = connectPkt.clientID
+	encodedConnackPkt := EncodeConnackPacket(ConnackPacket{
 		AckFlags: 0,
 		RtrnCode: 0,
-	}
-	rawConnackPkt := EncodeConnackPacket(connackPkt)
-	_, err = c.Conn.Write(rawConnackPkt)
+	})
+	_, err = c.Conn.Write(encodedConnackPkt)
 	if err != nil {
 		return err
 	}
