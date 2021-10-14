@@ -83,6 +83,10 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
+	// var willTopic string
+	// var willMsg []byte
+	// var username string
+	// var password string
 	if fh.Flags != 0 {
 		return ConnectFixedHdrReservedFlagError
 	}
@@ -91,11 +95,11 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
 	if err != nil {
 		return err
 	}
-	cp, err := DecodeConnectPacket(b)
+	connectPkt, err := DecodeConnectPacket(b)
 	if err != nil {
 		return err
 	}
-	clientID, err := ReadEncodedStr(bytes.NewBuffer(cp.payload))
+	clientID, err := ReadEncodedStr(bytes.NewBuffer(connectPkt.payload))
 	if err != nil {
 		return err
 	}
@@ -118,12 +122,11 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
 	}
 	clientIDSet.saveClientID(clientID)
 	c.ClientID = clientID
-	connackPkt := ConnackPacket{
+	encodedConnackPkt := EncodeConnackPacket(ConnackPacket{
 		AckFlags: 0,
 		RtrnCode: 0,
-	}
-	rawConnackPkt := EncodeConnackPacket(connackPkt)
-	_, err = c.Conn.Write(rawConnackPkt)
+	})
+	_, err = c.Conn.Write(encodedConnackPkt)
 	if err != nil {
 		return err
 	}
