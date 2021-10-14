@@ -137,17 +137,11 @@ func encodeStr(s string) []byte {
 	b := []byte(s)
 	encodedStrLen := make([]byte, 2)
 	binary.BigEndian.PutUint16(encodedStrLen, uint16(len(b))) // prefix with len
-	if len(b) > int(binary.BigEndian.Uint16(encodedStrLen)) {
-		panic("could not encode string")
-	}
-	return append(encodedStrLen, b...)
+	return append(encodedStrLen, b[:uint16(len(b))]...)
 }
 
 func encodeBytes(b []byte) []byte {
 	encodedStrLen := make([]byte, 2)
 	binary.BigEndian.PutUint16(encodedStrLen, uint16(len(b))) // prefix with len
-	if len(b) > int(binary.BigEndian.Uint16(encodedStrLen)) {
-		panic("could not encode bytes")
-	}
-	return append(encodedStrLen, b...)
+	return append(encodedStrLen, b[:uint16(len(b))]...)
 }
