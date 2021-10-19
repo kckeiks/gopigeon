@@ -54,6 +54,8 @@ func HandleConn(c net.Conn) error {
 			err = HandlePublish(c, fh)
 		case Subscribe:
 			err = HandleSubscribe(connection, fh)
+		case Pingreq:
+			err = HandlePingreq(connection, fh)
 		case Connect:
 			err = SecondConnectPktError
 		case Disconnect:
