@@ -20,8 +20,6 @@ func (tc *testConn) Read(b []byte) (int, error) {
 }
 
 func (tc *testConn) Write(b []byte) (int, error) {
-	// We are not interested in the *ack messages
-	// return len(b), nil
 	if tc.b == nil {
 		tc.b = bytes.NewBuffer([]byte{})
 	}

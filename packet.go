@@ -14,6 +14,8 @@ const (
 	Publish    = 3
 	Subscribe  = 8
 	Suback     = 9
+	Pingreq    = 12
+	Pingres    = 13
 	Disconnect = 14
 )
 

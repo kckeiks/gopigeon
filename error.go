@@ -17,4 +17,5 @@ var (
 var (
 	ConnectFixedHdrReservedFlagError = errors.New("connect reserved flag in fixed header must be zero")
 	ConnectReserveFlagError          = errors.New("connect reserved flag must be zero")
+	PingreqReservedFlagError = errors.New("pingreq reserved flag must be zero")
 )
