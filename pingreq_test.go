@@ -1,28 +1,32 @@
 package gopigeon
 
 import (
-	"encoding/binary"
+	"errors"
 	"fmt"
 	"net"
+	"os"
 	"testing"
 	"time"
 )
 
 // https://medium.com/nerd-for-tech/setup-and-teardown-unit-test-in-go-bd6fa1b785cd
 
-func server(clientCount int) {
+func init() {
+	DefaultKeepAliveTime = 2
+}
+
+func server(serverError chan error) {
 	ln, err := net.Listen("tcp", "localhost:8033")
 	if err != nil {
 		panic(fmt.Sprintf("fatal error: %v", err))
 	}
-	for clientCount > 0 {
-		conn, err := ln.Accept()
-		if err != nil {
-			panic(fmt.Sprintf("fatal error: %v", err))
-		}
-		HandleConn(conn)
-		clientCount--
+	defer ln.Close()
+	conn, err := ln.Accept()
+	if err != nil {
+		panic(fmt.Sprintf("fatal error: %v", err))
 	}
+	serverError <- HandleConn(conn)
+	return
 }
 
 func client() net.Conn {
@@ -59,52 +63,48 @@ func client() net.Conn {
 
 func TestKeepAlive(t *testing.T) {
 	disconnet := newEncodedDisconnect()
-	pingreq := newPingreqRequest()
+	// pingreq := newPingreqRequest()
 	cases := map[string]struct {
-		keepAlive       uint16
-		pingreqWaitTime uint16
+		keepAlive       int
+		pingreqWaitTime int
 		willFail        bool
+		err             chan error
 	}{
-		"success: not going over default keep alive time": {0, 2, false},
-		"success: not going over given keep alive time":   {0, 1, false},
-		"failure: going over default keep alive time":     {0, 4, true},
-		"failure: going over given keep alive time":       {0, 3, true},
+		"not going over default keep alive time": {0, 1, false, nil},
+		"not going over given keep alive time":   {2, 1, false, nil},
+		"going over default keep alive time":     {0, 5, true, nil},
+		"going over given keep alive time":       {2, 3, true, nil},
 	}
-	// start server
-	go server(len(cases))
-	time.Sleep(time.Second * time.Duration(1))
-
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
+			// start server
+			tc.err = make(chan error, 0)
+			go server(tc.err)
+			time.Sleep(time.Second * time.Duration(1))
 			// start client
 			conn := client()
 			defer conn.Close()
-			connectPkt := ConnectPacket{
+			_, connect := newTestConnectRequest(&ConnectPacket{
 				protocolName:  "MQTT",
 				protocolLevel: 4,
 				cleanSession:  1,
-			}
-			binary.BigEndian.PutUint16(connectPkt.keepAlive[:], tc.keepAlive)
-			_, connect := newTestConnectRequest(&connectPkt)
+				keepAlive:     tc.keepAlive,
+			})
+			// connect properly
 			_, err := conn.Write(connect)
 			if err != nil {
 				t.Fatalf("unexpected error on write")
 			}
 			time.Sleep(time.Second * time.Duration(tc.pingreqWaitTime))
-			_, err = conn.Write(pingreq)
-			if tc.willFail && err == nil {
-				t.Logf("was expecting a failure")
-				t.Fail()
+			// try to disconnect
+			// if setDeadline worked, server was probably blocking on Read()
+			// so it didnt even get a chance to Read() disconnect
+			conn.Write(disconnet)
+			err = <-tc.err
+			if tc.willFail && (err == nil || !errors.Is(err, os.ErrDeadlineExceeded)) {
+				t.Fatalf("was expecting ErrDeadlineExceeded but got %+v", err)
 			} else if !tc.willFail && err != nil {
 				t.Fatalf("unexpected failure")
-			}
-			conn.Write(disconnet)
-
-			for {
-				_, err = conn.Write(pingreq)
-				if err != nil {
-					return
-				}
 			}
 		})
 	}

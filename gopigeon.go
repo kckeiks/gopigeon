@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"time"
 )
+
+var DefaultKeepAliveTime = 60
 
 func init() {
 	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
@@ -18,6 +19,7 @@ func ListenAndServe() {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
 	}
+	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -44,6 +46,7 @@ func HandleConn(c net.Conn) error {
 		fmt.Println(err)
 		return err
 	}
+	connection.resetReadDeadline()
 	for {
 		fh, err := ReadFixedHeader(c)
 		if err != nil {
@@ -68,7 +71,7 @@ func HandleConn(c net.Conn) error {
 			fmt.Println(err)
 			return err
 		}
-		connection.Conn.SetReadDeadline(time.Now().Add(time.Duration(connection.KeepAlive)))
+		connection.resetReadDeadline()
 	}
 	return nil
 }

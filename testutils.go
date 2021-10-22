@@ -86,6 +86,8 @@ func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	if len(cp.password) > 0 {
 		payload = append(payload, encodeBytes(cp.password)...)
 	}
+	keepAliveBuf := make([]byte, 2)
+	binary.BigEndian.PutUint16(keepAliveBuf, uint16(cp.keepAlive))
 	// # of bytes: 4 bytes (protocol level, connect flags, keep alive) +
 	// 2 to encode protocol name len + len of bytes in protocol name + len of payload
 	lenOfPkt := uint32(4 + 2 + len(pn) + len(payload))
@@ -95,7 +97,7 @@ func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	connect = append(connect, pn...)                        // add protocol name
 	connect = append(connect, cp.protocolLevel)
 	connect = append(connect, 2)               // TODO: connect flags
-	connect = append(connect, cp.keepAlive[:]...) // TODO: Keep Alive
+	connect = append(connect, keepAliveBuf...) // TODO: Keep Alive
 	connect = append(connect, payload...)
 	return connect
 }
