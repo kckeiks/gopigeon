@@ -49,6 +49,18 @@ func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 	return append(encodedFh, remLen...)
 }
 
+func newPingreqRequest() []byte {
+	return []byte{Pingreq << 4, 0}
+}
+
+func newEncodedPingres() []byte {
+	return []byte{Pingres << 4, 0}
+}
+
+func newEncodedDisconnect() []byte {
+	return []byte{Disconnect << 4, 0}
+}
+
 func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
 	connectInBytes := encodeTestConnectPkt(cp)
 	// TODO: encode flags
