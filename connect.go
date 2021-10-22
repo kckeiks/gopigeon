@@ -2,7 +2,9 @@ package gopigeon
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
+	"time"
 )
 
 const (
@@ -18,7 +20,7 @@ type ConnectPacket struct {
 	willQoSFlag    byte
 	willFlag       byte
 	cleanSession   byte
-	keepAlive      [2]byte
+	keepAlive      int
 	clientID       string
 	willTopic      string
 	willMsg        []byte
@@ -60,10 +62,13 @@ func DecodeConnectPacket(b []byte) (*ConnectPacket, error) {
 	cp.willFlag = (connectFlags >> 2) & 1
 	cp.cleanSession = (connectFlags >> 1) & 1
 	// read Keep Alive
-	_, err = io.ReadFull(buf, cp.keepAlive[:])
+	keepAliveBuf := make([]byte, 2)
+	_, err = io.ReadFull(buf, keepAliveBuf)
 	if err != nil {
 		return nil, err
 	}
+	cp.keepAlive = int(binary.BigEndian.Uint16(keepAliveBuf))
+	// read client id
 	cp.clientID, err = ReadEncodedStr(buf)
 	if err != nil {
 		return nil, err
@@ -102,10 +107,6 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
-	// var willTopic string
-	// var willMsg []byte
-	// var username string
-	// var password string
 	if fh.Flags != 0 {
 		return ConnectFixedHdrReservedFlagError
 	}
@@ -137,6 +138,10 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
 	}
 	clientIDSet.saveClientID(connectPkt.clientID)
 	c.ClientID = connectPkt.clientID
+	c.KeepAlive = connectPkt.keepAlive
+	if connectPkt.keepAlive == 0 {
+		c.KeepAlive = DefaultKeepAliveTime
+	}
 	encodedConnackPkt := EncodeConnackPacket(ConnackPacket{
 		AckFlags: 0,
 		RtrnCode: 0,
@@ -156,4 +161,8 @@ func HandleDisconnect(c *MQTTConn) {
 	// remove ClientID from ID set
 	clientIDSet.removeClientID(c.ClientID)
 	c.Conn.Close()
+}
+
+func (c *MQTTConn) resetReadDeadline() {
+	c.Conn.SetReadDeadline(time.Now().Add(time.Second * time.Duration(c.KeepAlive)))
 }

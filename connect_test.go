@@ -1,7 +1,6 @@
 package gopigeon
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -34,7 +33,6 @@ func TestDecodeConnectPacketInvalidReservedFlag(t *testing.T) {
 		protocolLevel: 4,
 		cleanSession:  1,
 	})
-	fmt.Printf("%+v\n", cp)
 	cp[len(cp)-5] = 3
 	// When: we try to decoded it
 	// we pass the packet without the fixed header

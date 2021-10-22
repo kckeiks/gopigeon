@@ -1,8 +1,15 @@
 package gopigeon
 
 import (
+	"errors"
+	"os"
 	"testing"
+	"time"
 )
+
+func init() {
+	DefaultKeepAliveTime = 10
+}
 
 func TestHandleConnTwoConnects(t *testing.T) {
 	// Given: a connection with a client
@@ -43,5 +50,55 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	// Then: we get an error because it is a protocol violation
 	if err != ExpectingConnectPktError {
 		t.Fatalf("Expected ExpectingConnectPktError but got %d.", err)
+	}
+}
+
+// These tests tend to be a bit flaky if the difference is small 
+// between keep alive and idle time
+func TestKeepAlive(t *testing.T) {
+	disconnet := newEncodedDisconnect()
+	// pingreq := newPingreqRequest()
+	cases := map[string]struct {
+		keepAlive int
+		idleTime  int
+		willFail  bool
+	}{
+		"not going over default keep alive time": {0, 1, false},
+		"not going over given keep alive time":   {8, 1, false},
+		"going over default keep alive time":     {0, 20, true},
+		"going over given keep alive time":       {1, 8, true},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			// start server
+			expectedError := make(chan error, 0)
+			go server(expectedError)
+			time.Sleep(time.Second * time.Duration(1))
+			// start client
+			conn := client()
+			defer conn.Close()
+			_, connect := newTestConnectRequest(&ConnectPacket{
+				protocolName:  "MQTT",
+				protocolLevel: 4,
+				cleanSession:  1,
+				keepAlive:     tc.keepAlive,
+			})
+			// connect properly
+			_, err := conn.Write(connect)
+			if err != nil {
+				t.Fatalf("unexpected error on write")
+			}
+			time.Sleep(time.Second * time.Duration(tc.idleTime))
+			// try to disconnect
+			// if setDeadline worked, server was probably blocking on Read()
+			// so it didnt even get a chance to Read() disconnect
+			conn.Write(disconnet)
+			err = <-expectedError
+			if tc.willFail && (err == nil || !errors.Is(err, os.ErrDeadlineExceeded)) {
+				t.Fatalf("was expecting ErrDeadlineExceeded but got %+v", err)
+			} else if !tc.willFail && err != nil {
+				t.Fatalf("unexpected error %+v\n", err)
+			}
+		})
 	}
 }

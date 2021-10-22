@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+var DefaultKeepAliveTime = 60
+
 func init() {
 	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
 	clientIDSet = &idSet{set: make(map[string]struct{})}
@@ -17,6 +19,7 @@ func ListenAndServe() {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
 	}
+	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -43,6 +46,7 @@ func HandleConn(c net.Conn) error {
 		fmt.Println(err)
 		return err
 	}
+	connection.resetReadDeadline()
 	for {
 		fh, err := ReadFixedHeader(c)
 		if err != nil {
@@ -67,6 +71,7 @@ func HandleConn(c net.Conn) error {
 			fmt.Println(err)
 			return err
 		}
+		connection.resetReadDeadline()
 	}
 	return nil
 }

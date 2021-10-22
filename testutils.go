@@ -3,6 +3,7 @@ package gopigeon
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"net"
 	"time"
 )
@@ -10,6 +11,28 @@ import (
 // implements net.Conn interface
 type testConn struct {
 	b *bytes.Buffer
+}
+
+func server(serverError chan error) {
+	ln, err := net.Listen("tcp", "localhost:8033")
+	if err != nil {
+		panic(fmt.Sprintf("fatal error: %v", err))
+	}
+	defer ln.Close()
+	conn, err := ln.Accept()
+	if err != nil {
+		panic(fmt.Sprintf("fatal error: %v", err))
+	}
+	serverError <- HandleConn(conn)
+	return
+}
+
+func client() net.Conn {
+	conn, err := net.Dial("tcp", "localhost:8033")
+	if err != nil {
+		panic(fmt.Sprintf("failed to dial: %v\n", err))
+	}
+	return conn
 }
 
 func (tc *testConn) Read(b []byte) (int, error) {
@@ -49,6 +72,18 @@ func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 	return append(encodedFh, remLen...)
 }
 
+func newPingreqRequest() []byte {
+	return []byte{Pingreq << 4, 0}
+}
+
+func newEncodedPingres() []byte {
+	return []byte{Pingres << 4, 0}
+}
+
+func newEncodedDisconnect() []byte {
+	return []byte{Disconnect << 4, 0}
+}
+
 func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
 	connectInBytes := encodeTestConnectPkt(cp)
 	// TODO: encode flags
@@ -74,6 +109,8 @@ func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	if len(cp.password) > 0 {
 		payload = append(payload, encodeBytes(cp.password)...)
 	}
+	keepAliveBuf := make([]byte, 2)
+	binary.BigEndian.PutUint16(keepAliveBuf, uint16(cp.keepAlive))
 	// # of bytes: 4 bytes (protocol level, connect flags, keep alive) +
 	// 2 to encode protocol name len + len of bytes in protocol name + len of payload
 	lenOfPkt := uint32(4 + 2 + len(pn) + len(payload))
@@ -82,8 +119,8 @@ func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	connect = append(connect, pnLen[:]...)                  // add protocol name
 	connect = append(connect, pn...)                        // add protocol name
 	connect = append(connect, cp.protocolLevel)
-	connect = append(connect, 2)    // TODO: connect flags
-	connect = append(connect, 0, 0) // TODO: Keep Alive
+	connect = append(connect, 2)               // TODO: connect flags
+	connect = append(connect, keepAliveBuf...) // TODO: Keep Alive
 	connect = append(connect, payload...)
 	return connect
 }
