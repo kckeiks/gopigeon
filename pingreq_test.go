@@ -103,7 +103,7 @@ func TestKeepAlive(t *testing.T) {
 			for {
 				_, err = conn.Write(pingreq)
 				if err != nil {
-					return 
+					return
 				}
 			}
 		})

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 )
 
 func init() {
@@ -67,6 +68,7 @@ func HandleConn(c net.Conn) error {
 			fmt.Println(err)
 			return err
 		}
+		connection.Conn.SetReadDeadline(time.Now().Add(time.Duration(connection.KeepAlive)))
 	}
 	return nil
 }

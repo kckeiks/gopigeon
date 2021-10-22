@@ -14,9 +14,10 @@ var clientIDSet *idSet
 var subscribers *Subscribers
 
 type MQTTConn struct {
-	Conn     net.Conn
-	ClientID string
-	Topics   []string
+	Conn      net.Conn
+	ClientID  string
+	Topics    []string
+	KeepAlive int
 }
 
 type Subscribers struct {

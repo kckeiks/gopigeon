@@ -94,8 +94,8 @@ func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	connect = append(connect, pnLen[:]...)                  // add protocol name
 	connect = append(connect, pn...)                        // add protocol name
 	connect = append(connect, cp.protocolLevel)
-	connect = append(connect, 2)    // TODO: connect flags
-	connect = append(connect, 0, 0) // TODO: Keep Alive
+	connect = append(connect, 2)               // TODO: connect flags
+	connect = append(connect, cp.keepAlive[:]...) // TODO: Keep Alive
 	connect = append(connect, payload...)
 	return connect
 }

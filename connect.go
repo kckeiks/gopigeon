@@ -102,10 +102,6 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 }
 
 func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
-	// var willTopic string
-	// var willMsg []byte
-	// var username string
-	// var password string
 	if fh.Flags != 0 {
 		return ConnectFixedHdrReservedFlagError
 	}
