@@ -3,6 +3,7 @@ package gopigeon
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"net"
 	"time"
 )
@@ -10,6 +11,28 @@ import (
 // implements net.Conn interface
 type testConn struct {
 	b *bytes.Buffer
+}
+
+func server(serverError chan error) {
+	ln, err := net.Listen("tcp", "localhost:8033")
+	if err != nil {
+		panic(fmt.Sprintf("fatal error: %v", err))
+	}
+	defer ln.Close()
+	conn, err := ln.Accept()
+	if err != nil {
+		panic(fmt.Sprintf("fatal error: %v", err))
+	}
+	serverError <- HandleConn(conn)
+	return
+}
+
+func client() net.Conn {
+	conn, err := net.Dial("tcp", "localhost:8033")
+	if err != nil {
+		panic(fmt.Sprintf("failed to dial: %v\n", err))
+	}
+	return conn
 }
 
 func (tc *testConn) Read(b []byte) (int, error) {
