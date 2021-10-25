@@ -13,7 +13,7 @@ type testConn struct {
 	b *bytes.Buffer
 }
 
-func server(serverError chan error) {
+func testServer(serverError chan error) {
 	ln, err := net.Listen("tcp", "localhost:8033")
 	if err != nil {
 		panic(fmt.Sprintf("fatal error: %v", err))
@@ -27,7 +27,7 @@ func server(serverError chan error) {
 	return
 }
 
-func client() net.Conn {
+func testClient() net.Conn {
 	conn, err := net.Dial("tcp", "localhost:8033")
 	if err != nil {
 		panic(fmt.Sprintf("failed to dial: %v\n", err))

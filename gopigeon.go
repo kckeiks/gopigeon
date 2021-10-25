@@ -46,16 +46,16 @@ func HandleConn(c net.Conn) error {
 		fmt.Println(err)
 		return err
 	}
-	connection.resetReadDeadline()
 	for {
-		fh, err := ReadFixedHeader(c)
+		connection.resetReadDeadline()
+		fh, err := ReadFixedHeader(connection.Conn)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 		switch fh.PktType {
 		case Publish:
-			err = HandlePublish(c, fh)
+			err = HandlePublish(connection.Conn, fh)
 		case Subscribe:
 			err = HandleSubscribe(connection, fh)
 		case Pingreq:
@@ -71,7 +71,6 @@ func HandleConn(c net.Conn) error {
 			fmt.Println(err)
 			return err
 		}
-		connection.resetReadDeadline()
 	}
 	return nil
 }

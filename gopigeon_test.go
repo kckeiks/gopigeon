@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	DefaultKeepAliveTime = 10
+	DefaultKeepAliveTime = 6
 }
 
 func TestHandleConnTwoConnects(t *testing.T) {
@@ -65,17 +65,17 @@ func TestKeepAlive(t *testing.T) {
 	}{
 		"not going over default keep alive time": {0, 1, false},
 		"not going over given keep alive time":   {8, 1, false},
-		"going over default keep alive time":     {0, 20, true},
-		"going over given keep alive time":       {1, 8, true},
+		"going over default keep alive time":     {0, 12, true},
+		"going over given keep alive time":       {1, 6, true},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// start server
 			expectedError := make(chan error, 0)
-			go server(expectedError)
+			go testServer(expectedError)
 			time.Sleep(time.Second * time.Duration(1))
 			// start client
-			conn := client()
+			conn := testClient()
 			defer conn.Close()
 			_, connect := newTestConnectRequest(&ConnectPacket{
 				protocolName:  "MQTT",
@@ -95,9 +95,9 @@ func TestKeepAlive(t *testing.T) {
 			conn.Write(disconnet)
 			err = <-expectedError
 			if tc.willFail && (err == nil || !errors.Is(err, os.ErrDeadlineExceeded)) {
-				t.Fatalf("was expecting ErrDeadlineExceeded but got %+v", err)
+				t.Fatalf("given %+v was expecting ErrDeadlineExceeded but got %+v", tc, err)
 			} else if !tc.willFail && err != nil {
-				t.Fatalf("unexpected error %+v\n", err)
+				t.Fatalf("given %+v got a unexpected error %+v\n", tc, err)
 			}
 		})
 	}
