@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-var DefaultKeepAliveTime = 60
+var DefaultKeepAliveTime = 20
 
 func init() {
 	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}

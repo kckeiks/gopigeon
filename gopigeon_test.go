@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	DefaultKeepAliveTime = 6
+	DefaultKeepAliveTime = 4
 }
 
 func TestHandleConnTwoConnects(t *testing.T) {
@@ -64,7 +64,7 @@ func TestKeepAlive(t *testing.T) {
 		willFail  bool
 	}{
 		"not going over default keep alive time": {0, 1, false},
-		"not going over given keep alive time":   {8, 1, false},
+		"not going over given keep alive time":   {5, 1, false},
 		"going over default keep alive time":     {0, 12, true},
 		"going over given keep alive time":       {1, 6, true},
 	}
