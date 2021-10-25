@@ -140,7 +140,7 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
 	c.ClientID = connectPkt.clientID
 	c.KeepAlive = connectPkt.keepAlive
 	if connectPkt.keepAlive == 0 {
-		c.KeepAlive = DefaultKeepAliveTime
+		c.KeepAlive = defaultKeepAliveTime
 	}
 	encodedConnackPkt := EncodeConnackPacket(ConnackPacket{
 		AckFlags: 0,

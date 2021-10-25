@@ -10,8 +10,9 @@ import (
 
 const clientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-var clientIDSet *idSet
-var subscribers *Subscribers
+var defaultKeepAliveTime = 120
+var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
+var clientIDSet = &idSet{set: make(map[string]struct{})}
 
 type MQTTConn struct {
 	Conn      net.Conn

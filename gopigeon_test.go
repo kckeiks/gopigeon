@@ -8,7 +8,8 @@ import (
 )
 
 func init() {
-	DefaultKeepAliveTime = 4
+	
+	defaultKeepAliveTime = 4
 }
 
 func TestHandleConnTwoConnects(t *testing.T) {

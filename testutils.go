@@ -18,13 +18,13 @@ func testServer(serverError chan error) {
 	if err != nil {
 		panic(fmt.Sprintf("fatal error: %v", err))
 	}
-	defer ln.Close()
 	conn, err := ln.Accept()
 	if err != nil {
 		panic(fmt.Sprintf("fatal error: %v", err))
 	}
-	serverError <- HandleConn(conn)
-	return
+	err = HandleConn(conn)
+	ln.Close()
+	serverError <- err
 }
 
 func testClient() net.Conn {
