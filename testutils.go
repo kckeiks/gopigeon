@@ -72,8 +72,8 @@ func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 	return append(encodedFh, remLen...)
 }
 
-func newPingreqRequest() []byte {
-	return []byte{Pingreq << 4, 0}
+func newPingreqReqRequest() (*FixedHeader, []byte) {
+	return &FixedHeader{PktType: Pingreq << 4}, []byte{Pingreq << 4, 0}
 }
 
 func newEncodedPingres() []byte {

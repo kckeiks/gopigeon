@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	
+
 	defaultKeepAliveTime = 4
 }
 
@@ -54,11 +54,10 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	}
 }
 
-// These tests tend to be a bit flaky if the difference is small 
+// These tests tend to be a bit flaky if the difference is small
 // between keep alive and idle time
 func TestKeepAlive(t *testing.T) {
 	disconnet := newEncodedDisconnect()
-	// pingreq := newPingreqRequest()
 	cases := map[string]struct {
 		keepAlive int
 		idleTime  int
