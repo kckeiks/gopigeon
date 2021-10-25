@@ -13,21 +13,21 @@ type testConn struct {
 	b *bytes.Buffer
 }
 
-func server(serverError chan error) {
+func testServer(serverError chan error) {
 	ln, err := net.Listen("tcp", "localhost:8033")
 	if err != nil {
 		panic(fmt.Sprintf("fatal error: %v", err))
 	}
-	defer ln.Close()
 	conn, err := ln.Accept()
 	if err != nil {
 		panic(fmt.Sprintf("fatal error: %v", err))
 	}
-	serverError <- HandleConn(conn)
-	return
+	err = HandleConn(conn)
+	ln.Close()
+	serverError <- err
 }
 
-func client() net.Conn {
+func testClient() net.Conn {
 	conn, err := net.Dial("tcp", "localhost:8033")
 	if err != nil {
 		panic(fmt.Sprintf("failed to dial: %v\n", err))
@@ -72,8 +72,8 @@ func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 	return append(encodedFh, remLen...)
 }
 
-func newPingreqRequest() []byte {
-	return []byte{Pingreq << 4, 0}
+func newPingreqReqRequest() (*FixedHeader, []byte) {
+	return &FixedHeader{PktType: Pingreq << 4}, []byte{Pingreq << 4, 0}
 }
 
 func newEncodedPingres() []byte {

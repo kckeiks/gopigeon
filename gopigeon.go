@@ -6,13 +6,6 @@ import (
 	"os"
 )
 
-var DefaultKeepAliveTime = 60
-
-func init() {
-	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
-	clientIDSet = &idSet{set: make(map[string]struct{})}
-}
-
 func ListenAndServe() {
 	ln, err := net.Listen("tcp", ":8080")
 	if err != nil {
@@ -32,7 +25,7 @@ func ListenAndServe() {
 func HandleConn(c net.Conn) error {
 	connection := &MQTTConn{Conn: c}
 	defer HandleDisconnect(connection)
-	fh, err := ReadFixedHeader(c)
+	fh, err := ReadFixedHeader(connection.Conn)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -46,16 +39,16 @@ func HandleConn(c net.Conn) error {
 		fmt.Println(err)
 		return err
 	}
-	connection.resetReadDeadline()
 	for {
-		fh, err := ReadFixedHeader(c)
+		connection.resetReadDeadline()
+		fh, err := ReadFixedHeader(connection.Conn)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 		switch fh.PktType {
 		case Publish:
-			err = HandlePublish(c, fh)
+			err = HandlePublish(connection.Conn, fh)
 		case Subscribe:
 			err = HandleSubscribe(connection, fh)
 		case Pingreq:
@@ -71,7 +64,6 @@ func HandleConn(c net.Conn) error {
 			fmt.Println(err)
 			return err
 		}
-		connection.resetReadDeadline()
 	}
 	return nil
 }

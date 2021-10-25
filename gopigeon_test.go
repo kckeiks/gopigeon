@@ -8,7 +8,8 @@ import (
 )
 
 func init() {
-	DefaultKeepAliveTime = 10
+
+	defaultKeepAliveTime = 1
 }
 
 func TestHandleConnTwoConnects(t *testing.T) {
@@ -53,29 +54,28 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	}
 }
 
-// These tests tend to be a bit flaky if the difference is small 
+// These tests tend to be a bit flaky if the difference is small
 // between keep alive and idle time
 func TestKeepAlive(t *testing.T) {
 	disconnet := newEncodedDisconnect()
-	// pingreq := newPingreqRequest()
 	cases := map[string]struct {
 		keepAlive int
 		idleTime  int
 		willFail  bool
 	}{
-		"not going over default keep alive time": {0, 1, false},
-		"not going over given keep alive time":   {8, 1, false},
-		"going over default keep alive time":     {0, 20, true},
-		"going over given keep alive time":       {1, 8, true},
+		"not going over default keep alive time": {0, 0, false},
+		"not going over given keep alive time":   {2, 1, false},
+		"going over default keep alive time":     {0, 3, true},
+		"going over given keep alive time":       {2, 5, true},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// start server
 			expectedError := make(chan error, 0)
-			go server(expectedError)
+			go testServer(expectedError)
 			time.Sleep(time.Second * time.Duration(1))
 			// start client
-			conn := client()
+			conn := testClient()
 			defer conn.Close()
 			_, connect := newTestConnectRequest(&ConnectPacket{
 				protocolName:  "MQTT",
@@ -95,9 +95,9 @@ func TestKeepAlive(t *testing.T) {
 			conn.Write(disconnet)
 			err = <-expectedError
 			if tc.willFail && (err == nil || !errors.Is(err, os.ErrDeadlineExceeded)) {
-				t.Fatalf("was expecting ErrDeadlineExceeded but got %+v", err)
+				t.Fatalf("given %+v was expecting ErrDeadlineExceeded but got %+v", tc, err)
 			} else if !tc.willFail && err != nil {
-				t.Fatalf("unexpected error %+v\n", err)
+				t.Fatalf("given %+v got a unexpected error %+v\n", tc, err)
 			}
 		})
 	}

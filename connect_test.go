@@ -115,8 +115,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 		t.Fatalf("got an unexpected error")
 	}
 	// Then: the connection will have the Connack pkt representation in bytes
-	connack := ConnackPacket{AckFlags: 0, RtrnCode: 0}
-	expectedResult := newTestConnackRequest(connack.AckFlags, connack.RtrnCode)
+	expectedResult := newTestConnackRequest(0, 0)
 	result := make([]byte, len(expectedResult))
 	conn.Conn.Read(result)
 	if !reflect.DeepEqual(result, expectedResult) {

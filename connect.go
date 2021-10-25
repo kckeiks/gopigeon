@@ -140,7 +140,7 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
 	c.ClientID = connectPkt.clientID
 	c.KeepAlive = connectPkt.keepAlive
 	if connectPkt.keepAlive == 0 {
-		c.KeepAlive = DefaultKeepAliveTime
+		c.KeepAlive = defaultKeepAliveTime
 	}
 	encodedConnackPkt := EncodeConnackPacket(ConnackPacket{
 		AckFlags: 0,
@@ -164,5 +164,7 @@ func HandleDisconnect(c *MQTTConn) {
 }
 
 func (c *MQTTConn) resetReadDeadline() {
-	c.Conn.SetReadDeadline(time.Now().Add(time.Second * time.Duration(c.KeepAlive)))
+	// We set Deadline to one and a half the MQTTConn keep alive value.
+	// This value could be user given or the server's default value.
+	c.Conn.SetReadDeadline(time.Now().Add(time.Second * time.Duration(c.KeepAlive+(c.KeepAlive/2))))
 }
