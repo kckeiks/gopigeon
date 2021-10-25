@@ -9,7 +9,7 @@ import (
 
 func init() {
 
-	defaultKeepAliveTime = 4
+	defaultKeepAliveTime = 1
 }
 
 func TestHandleConnTwoConnects(t *testing.T) {
@@ -63,10 +63,10 @@ func TestKeepAlive(t *testing.T) {
 		idleTime  int
 		willFail  bool
 	}{
-		"not going over default keep alive time": {0, 1, false},
-		"not going over given keep alive time":   {5, 1, false},
-		"going over default keep alive time":     {0, 12, true},
-		"going over given keep alive time":       {1, 6, true},
+		"not going over default keep alive time": {0, 0, false},
+		"not going over given keep alive time":   {2, 1, false},
+		"going over default keep alive time":     {0, 3, true},
+		"going over given keep alive time":       {2, 5, true},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
