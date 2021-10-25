@@ -32,7 +32,7 @@ func ListenAndServe() {
 func HandleConn(c net.Conn) error {
 	connection := &MQTTConn{Conn: c}
 	defer HandleDisconnect(connection)
-	fh, err := ReadFixedHeader(c)
+	fh, err := ReadFixedHeader(connection.Conn)
 	if err != nil {
 		fmt.Println(err)
 		return err
