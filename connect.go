@@ -166,5 +166,10 @@ func HandleDisconnect(c *MQTTConn) {
 func (c *MQTTConn) resetReadDeadline() {
 	// We set Deadline to one and a half the MQTTConn keep alive value.
 	// This value could be user given or the server's default value.
-	c.Conn.SetReadDeadline(time.Now().Add(time.Second * time.Duration(c.KeepAlive+(c.KeepAlive/2))))
+	keepAlive := time.Second * time.Duration(c.KeepAlive + c.KeepAlive / 2)
+	if c.KeepAlive % 2 == 1 {
+		// add half a second
+		keepAlive += time.Millisecond * time.Duration(500)
+	}
+	c.Conn.SetReadDeadline(time.Now().Add(keepAlive))
 }
