@@ -64,9 +64,8 @@ func TestKeepAlive(t *testing.T) {
 		willFail  bool
 	}{
 		"not going over default keep alive time": {0, 0, false},
-		"not going over given keep alive time":   {2, 1, false},
+		"not going over given keep alive time":   {3, 1, false},
 		"going over default keep alive time":     {0, 3, true},
-		"going over given keep alive time":       {2, 5, true},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
