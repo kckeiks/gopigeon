@@ -12,6 +12,10 @@ const (
 	Connect    = 1
 	Connack    = 2
 	Publish    = 3
+	Puback     = 4
+	Pubrec     = 5
+	Pubrel     = 6
+	Pubcomp    = 7
 	Subscribe  = 8
 	Suback     = 9
 	Pingreq    = 12

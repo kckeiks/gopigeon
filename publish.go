@@ -2,6 +2,7 @@ package gopigeon
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 )
@@ -63,4 +64,33 @@ func EncodePublishPacket(fh FixedHeader, p []byte) []byte {
 
 func (p *PublishPacket) String() string {
 	return fmt.Sprintf("&PublishPacket{Topic: %s, PacketID: %d, Payload: %s}\n", p.Topic, p.PacketID, string(p.Payload))
+}
+
+func NewEncodedPuback(packetID uint16) []byte {
+	id := make([]byte, 2)
+	binary.BigEndian.PutUint16(id, packetID)
+	p := []byte{Puback << 4, 2}
+	return append(p, id...)
+}
+
+func NewEncodedPubrec(packetID uint16) []byte {
+	id := make([]byte, 2)
+	binary.BigEndian.PutUint16(id, packetID)
+	p := []byte{Pubrec << 4, 2}
+	return append(p, id...)
+}
+
+func NewEncodedPubrel(packetID uint16) []byte {
+	var firstByte byte = (Pubrel << 4) | 2
+	id := make([]byte, 2)
+	binary.BigEndian.PutUint16(id, packetID)
+	p := []byte{firstByte, 2}
+	return append(p, id...)
+}
+
+func NewEncodedPubcomp(packetID uint16) []byte {
+	id := make([]byte, 2)
+	binary.BigEndian.PutUint16(id, packetID)
+	p := []byte{Pubcomp << 4, 2}
+	return append(p, id...)
 }
