@@ -20,7 +20,7 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 		return err
 	}
 	var hasPktID bool
-	qos := int(fh.Flags & 6)
+	qos := int((fh.Flags & 6) >> 1)
 	if qos > 2 {
 		return InvalidQoSValError
 	}
