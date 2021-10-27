@@ -16,7 +16,7 @@ func TestDecodePublishPacket(t *testing.T) {
 	_, pp := newTestPublishRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
-	result, err := DecodePublishPacket(pp[2:])
+	result, err := DecodePublishPacket(pp[2:], false)
 	// Then: we get a connect packet struct with the right values
 	if err != nil {
 		t.Fatalf("DecodePublishPacket failed with err %d", err)

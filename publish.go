@@ -19,7 +19,15 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 	if err != nil {
 		return err
 	}
-	pp, err := DecodePublishPacket(b)
+	var hasPktID bool
+	qos := int(fh.Flags & 6)
+	if qos > 2 {
+		return InvalidQoSValError
+	}
+	if qos > 0 {
+		hasPktID = true
+	}	
+	pp, err := DecodePublishPacket(b, hasPktID)
 	if err != nil {
 		return err
 	}
@@ -38,21 +46,34 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 	return nil
 }
 
-func DecodePublishPacket(b []byte) (*PublishPacket, error) {
+func DecodePublishPacket(b []byte, hasPktID bool) (*PublishPacket, error) {
+	p := &PublishPacket{}
 	pktLen := len(b)
 	buf := bytes.NewBuffer(b)
+	// get topic
 	topic, err := ReadEncodedStr(buf)
 	if err != nil {
 		return nil, err
 	}
-	// Note: When QoS is 0 there is no packet id
-	payloadLen := pktLen - (StrlenLen + len(topic))
+	p.Topic = topic
+	// get QoS
+	var pktIdBuf []byte
+	if hasPktID {
+		_, err := io.ReadFull(buf, pktIdBuf)
+		if err != nil {
+			return nil, err
+		}
+		p.PacketID = binary.BigEndian.Uint16(pktIdBuf)
+	}
+	// get payload
+	payloadLen := pktLen - (StrlenLen + len(topic) + len(pktIdBuf))
 	payload := make([]byte, payloadLen)
 	_, err = io.ReadFull(buf, payload)
 	if err != nil {
 		return nil, err
 	}
-	return &PublishPacket{Topic: topic, Payload: payload}, nil
+	p.Payload = payload
+	return p, nil
 }
 
 func EncodePublishPacket(fh FixedHeader, p []byte) []byte {
