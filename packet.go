@@ -8,6 +8,15 @@ import (
 	"unicode/utf8"
 )
 
+type MessageState uint
+
+const (
+	WaitingOnPuback MessageState = iota
+	WaitingOnPubrec
+	WaitingOnPubrel
+	WaitingOnPubcomp
+)
+
 const (
 	Connect    = 1
 	Connack    = 2

@@ -15,47 +15,23 @@ var subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
 var clientIDSet = &idSet{set: make(map[string]struct{})}
 
 type MQTTConn struct {
-	Conn      net.Conn
-	ClientID  string
-	Topics    []string // might ne anle to remove this
-	KeepAlive int
-	// queue map[string]MessageQueue
-	// inflightMax
-	// inflightCount
+	Conn       net.Conn
+	ClientID   string
+	Topics     []string // might be able to remove this
+	KeepAlive  int
+	MsgManager *MessageManager
 }
 
-// db__message_write_inflight_out_single
-
-type MessageQueue struct {
-	queue       *queue
-	lastMsgSent []byte
-	state       uint
+type MessageManager struct {
+	queued        []*Message
+	inflight      []*Message
+	InflightCount uint
+	InflightMut   sync.Mutex
 }
 
-// Queue for chunks of data
-type queue struct {
-	data [][]byte
-}
-
-func (q *queue) enqueue(b []byte) {
-	q.data = append(q.data, b)
-}
-
-func (q *queue) dequeue() []byte {
-	if len(q.data) == 0 {
-		return nil
-	}
-	b := q.data[0]
-	q.data = q.data[1:]
-	return b
-}
-
-func (q *queue) clear() {
-	q.data = nil
-}
-
-func (q *queue) len() int {
-	return len(q.data)
+type Message struct {
+	State MessageState
+	Data  []byte
 }
 
 type Subscribers struct {
@@ -66,6 +42,27 @@ type Subscribers struct {
 type idSet struct {
 	mu  sync.Mutex
 	set map[string]struct{}
+}
+
+func (m *MessageManager) enqueue(msg *Message) {
+	m.queued = append(m.queued, msg)
+}
+
+func (m *MessageManager) dequeue() *Message {
+	if len(m.queued) == 0 {
+		return nil
+	}
+	msg := m.queued[0]
+	m.queued = m.queued[1:]
+	return msg
+}
+
+func (m *MessageManager) clear() {
+	m.queued = nil
+}
+
+func (m *MessageManager) len() int {
+	return len(m.queued)
 }
 
 func (s *Subscribers) addSubscriber(c *MQTTConn, topic string) {
