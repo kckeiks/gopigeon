@@ -65,5 +65,4 @@ func HandleConn(c net.Conn) error {
 			return err
 		}
 	}
-	return nil
 }

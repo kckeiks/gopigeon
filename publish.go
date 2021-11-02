@@ -56,7 +56,7 @@ func DecodePublishPacket(b []byte, hasPktID bool) (*PublishPacket, error) {
 		return nil, err
 	}
 	p.Topic = topic
-	// get QoS
+	// get pkt ID
 	var pktIdBuf []byte
 	if hasPktID {
 		_, err := io.ReadFull(buf, pktIdBuf)
@@ -115,3 +115,4 @@ func NewEncodedPubcomp(packetID uint16) []byte {
 	p := []byte{Pubcomp << 4, 2}
 	return append(p, id...)
 }
+

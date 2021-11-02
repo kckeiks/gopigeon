@@ -17,8 +17,45 @@ var clientIDSet = &idSet{set: make(map[string]struct{})}
 type MQTTConn struct {
 	Conn      net.Conn
 	ClientID  string
-	Topics    []string
+	Topics    []string // might ne anle to remove this
 	KeepAlive int
+	// queue map[string]MessageQueue
+	// inflightMax
+	// inflightCount
+}
+
+// db__message_write_inflight_out_single
+
+type MessageQueue struct {
+	queue       *queue
+	lastMsgSent []byte
+	state       uint
+}
+
+// Queue for chunks of data
+type queue struct {
+	data [][]byte
+}
+
+func (q *queue) enqueue(b []byte) {
+	q.data = append(q.data, b)
+}
+
+func (q *queue) dequeue() []byte {
+	if len(q.data) == 0 {
+		return nil
+	}
+	b := q.data[0]
+	q.data = q.data[1:]
+	return b
+}
+
+func (q *queue) clear() {
+	q.data = nil
+}
+
+func (q *queue) len() int {
+	return len(q.data)
 }
 
 type Subscribers struct {
