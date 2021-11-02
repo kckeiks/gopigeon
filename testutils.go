@@ -56,10 +56,10 @@ func (*testConn) SetDeadline(t time.Time) error      { return nil }
 func (*testConn) SetReadDeadline(t time.Time) error  { return nil }
 func (*testConn) SetWriteDeadline(t time.Time) error { return nil }
 
-func newTestMQTTConn(data []byte) *MQTTConn {
+func newTestClient(data []byte) *Client {
 	c := &testConn{}
 	c.Write(data)
-	return &MQTTConn{
+	return &Client{
 		Conn: c,
 	}
 }
@@ -169,8 +169,8 @@ func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	return &FixedHeader{PktType: Subscribe, RemLength: remLen}, subscribe
 }
 
-func addTestSubscriber(c *MQTTConn, topic string) {
-	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
-	subscribers.subscribers[topic] = []*MQTTConn{c}
+func addTestSubscriber(c *Client, topic string) {
+	subscribers = &Subscribers{subscribers: make(map[string][]*Client)}
+	subscribers.subscribers[topic] = []*Client{c}
 	c.Topics = append(c.Topics, topic)
 }

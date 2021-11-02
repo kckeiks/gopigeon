@@ -1,6 +1,6 @@
 package gopigeon
 
-func HandlePingreq(c *MQTTConn, fh *FixedHeader) error {
+func HandlePingreq(c *Client, fh *FixedHeader) error {
 	if fh.Flags != 0 {
 		return PingreqReservedFlagError
 	}

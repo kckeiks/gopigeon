@@ -28,7 +28,7 @@ func TestDecodePublishPacket(t *testing.T) {
 
 func TestHandlePublish(t *testing.T) {
 	// Given: we have a topic with a subscriber(s)
-	subscriber := newTestMQTTConn([]byte{})
+	subscriber := newTestClient([]byte{})
 	addTestSubscriber(subscriber, "testtopic")
 	// Given: a Publish packet in bytes
 	fh, pp := newTestPublishRequest(PublishPacket{

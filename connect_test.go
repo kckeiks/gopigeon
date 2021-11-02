@@ -107,7 +107,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 		cleanSession:  1,
 	})
 	// Given: mqtt connection that has the pkt in its buffer
-	conn := newTestMQTTConn(connect[2:])
+	conn := newTestClient(connect[2:])
 	// When: we handle a connnect packet
 	err := HandleConnect(conn, fh)
 	// Then: no error
@@ -133,7 +133,7 @@ func TestHandleConnectPacketInvalidFixedHdrReservedFlag(t *testing.T) {
 	// Given: reserved flag in header is not 0
 	fh.Flags = 1
 	// Given: mqtt connection that has the pkt in its buffer
-	conn := newTestMQTTConn(connect[2:])
+	conn := newTestClient(connect[2:])
 	// When: we handle a connnect packet
 	err := HandleConnect(conn, fh)
 	// Then: we get an error
@@ -150,13 +150,13 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 		cleanSession:  1,
 	})
 	// Given: a connection with the connect
-	conn := newTestMQTTConn(connect[2:])
+	conn := newTestClient(connect[2:])
 	// When: we handle the connection
 	HandleConnect(conn, fh)
 	// Then: we change the state of the connection
 	// by assigning it a randomly generated client id
 	if conn.ClientID == "" {
-		t.Fatalf("did not expect MQTTConn.ClientID to be the empty string")
+		t.Fatalf("did not expect Client.ID to be the empty string")
 	}
 }
 
@@ -170,7 +170,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 	}
 	fh, connect := newTestConnectRequest(decodedConnect)
 	// Given: a connection with the connect pkt
-	conn := newTestMQTTConn(connect[2:])
+	conn := newTestClient(connect[2:])
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is no error
@@ -193,7 +193,7 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 		clientID:      "t estid", // has space
 	})
 	// Given: a connection with the connect pkt
-	conn := newTestMQTTConn(connect[2:])
+	conn := newTestClient(connect[2:])
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is an error
@@ -216,7 +216,7 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 		clientID:      clientID,
 	})
 	// Given: a connection with the connect pkt
-	conn := newTestMQTTConn(connect[2:])
+	conn := newTestClient(connect[2:])
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is an error
@@ -228,7 +228,7 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 func TestHandleClose(t *testing.T) {
 	// Given: we have a connection (client) in our subscribers table for some topic
 	topic := "sometopic"
-	connection := newTestMQTTConn([]byte{})
+	connection := newTestClient([]byte{})
 	connection.ClientID = "testclientid"
 	addTestSubscriber(connection, topic)
 	// assert

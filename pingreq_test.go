@@ -9,7 +9,7 @@ func TestHandlePingreqSuccess(t *testing.T) {
 	// Given: ping request
 	// Note: Fixed hdr reader already Read  all the data before calling pingreq handler function
 	fh, _ := newPingreqReqRequest()
-	conn := newTestMQTTConn([]byte{})
+	conn := newTestClient([]byte{})
 	// When: we send it
 	err := HandlePingreq(conn, fh)
 	// Then: we get a pingres

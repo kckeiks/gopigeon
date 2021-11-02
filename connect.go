@@ -106,7 +106,7 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 	return append(fixedHeader, cp...)
 }
 
-func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
+func HandleConnect(c *Client, fh *FixedHeader) error {
 	if fh.Flags != 0 {
 		return ConnectFixedHdrReservedFlagError
 	}
@@ -153,7 +153,7 @@ func HandleConnect(c *MQTTConn, fh *FixedHeader) error {
 	return nil
 }
 
-func HandleDisconnect(c *MQTTConn) {
+func HandleDisconnect(c *Client) {
 	// remove connection from subscription table for all of topics that it subscribed to
 	for _, topic := range c.Topics {
 		subscribers.removeSubscriber(c, topic)
@@ -163,8 +163,8 @@ func HandleDisconnect(c *MQTTConn) {
 	c.Conn.Close()
 }
 
-func (c *MQTTConn) resetReadDeadline() {
-	// We set Deadline to one and a half the MQTTConn keep alive value.
+func (c *Client) resetReadDeadline() {
+	// We set Deadline to one and a half the Client keep alive value.
 	// This value could be user given or the server's default value.
 	keepAlive := time.Second * time.Duration(c.KeepAlive+c.KeepAlive/2)
 	if c.KeepAlive%2 == 1 {

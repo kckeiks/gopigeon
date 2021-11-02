@@ -31,7 +31,7 @@ func TestHandleSubscribeSuccess(t *testing.T) {
 		Payload:  []SubscribePayload{{TopicFilter: "testtopic", QoS: 0}},
 	})
 	// without header
-	c := newTestMQTTConn(sp[2:])
+	c := newTestClient(sp[2:])
 	// When: we handle the connection
 	err := HandleSubscribe(c, fh)
 	// Then: there is no error so we assume things are ok

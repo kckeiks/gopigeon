@@ -39,7 +39,7 @@ func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 	return &SubscribePacket{PacketID: binary.BigEndian.Uint16(packetId), Payload: payload}, nil
 }
 
-func HandleSubscribe(c *MQTTConn, fh *FixedHeader) error {
+func HandleSubscribe(c *Client, fh *FixedHeader) error {
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(c.Conn, b)
 	if err != nil {

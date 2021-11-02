@@ -7,21 +7,21 @@ import (
 
 func TestAddSubscriberSuccess(t *testing.T) {
 	// Given: we have a table of subscribers
-	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
+	subscribers = &Subscribers{subscribers: make(map[string][]*Client)}
 	// Given: a subscriber
-	sub := newTestMQTTConn([]byte{})
+	sub := newTestClient([]byte{})
 	// When: we add a subscriber given a topic
 	subscribers.addSubscriber(sub, "testtopic")
 	// Then: we have that subscriber added to the table
-	if !reflect.DeepEqual(subscribers.subscribers["testtopic"], []*MQTTConn{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", subscribers.subscribers["testtopic"], []*MQTTConn{sub})
+	if !reflect.DeepEqual(subscribers.subscribers["testtopic"], []*Client{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", subscribers.subscribers["testtopic"], []*Client{sub})
 	}
 }
 
 func TestGetSubscribersSuccess(t *testing.T) {
 	// Given: we have to table of subscriber
 	// Given: an existing topic
-	sub := newTestMQTTConn([]byte{})
+	sub := newTestClient([]byte{})
 	addTestSubscriber(sub, "testtopic")
 	// When: we try to find the subs for the topic in the table
 	result, err := subscribers.getSubscribers("testtopic")
@@ -29,14 +29,14 @@ func TestGetSubscribersSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("getSubscribers returned an unexpected error %+v", err)
 	}
-	if !reflect.DeepEqual(result, []*MQTTConn{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", result, []*MQTTConn{sub})
+	if !reflect.DeepEqual(result, []*Client{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", result, []*Client{sub})
 	}
 }
 
 func TestGetSubscribersFail(t *testing.T) {
 	// Given: we have to table of subscriber
-	sub := newTestMQTTConn([]byte{})
+	sub := newTestClient([]byte{})
 	addTestSubscriber(sub, "testtopic")
 	// Given: a non existing topic
 	unknownTopic := "foo"
