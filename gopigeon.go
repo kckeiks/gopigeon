@@ -18,14 +18,13 @@ func ListenAndServe() {
 		if err != nil {
 			continue
 		}
-		go HandleConn(conn)
+		go HandleClient(&Client{Conn: conn})
 	}
 }
 
-func HandleConn(c net.Conn) error {
-	connection := &Client{Conn: c}
-	defer HandleDisconnect(connection)
-	fh, err := ReadFixedHeader(connection.Conn)
+func HandleClient(c *Client) error {
+	defer HandleDisconnect(c)
+	fh, err := ReadFixedHeader(c.Conn)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -34,25 +33,25 @@ func HandleConn(c net.Conn) error {
 		fmt.Println(ExpectingConnectPktError)
 		return ExpectingConnectPktError
 	}
-	err = HandleConnect(connection, fh)
+	err = HandleConnect(c, fh)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 	for {
-		connection.resetReadDeadline()
-		fh, err := ReadFixedHeader(connection.Conn)
+		c.resetReadDeadline()
+		fh, err := ReadFixedHeader(c.Conn)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 		switch fh.PktType {
 		case Publish:
-			err = HandlePublish(connection.Conn, fh)
+			err = HandlePublish(c.Conn, fh)
 		case Subscribe:
-			err = HandleSubscribe(connection, fh)
+			err = HandleSubscribe(c, fh)
 		case Pingreq:
-			err = HandlePingreq(connection, fh)
+			err = HandlePingreq(c, fh)
 		case Connect:
 			err = SecondConnectPktError
 		case Disconnect:

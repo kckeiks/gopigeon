@@ -22,7 +22,7 @@ func testServer(serverError chan error) {
 	if err != nil {
 		panic(fmt.Sprintf("fatal error: %v", err))
 	}
-	err = HandleConn(conn)
+	err = HandleClient(&Client{Conn: conn})
 	ln.Close()
 	serverError <- err
 }

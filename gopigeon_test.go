@@ -1,6 +1,7 @@
 package gopigeon
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"testing"
@@ -14,7 +15,7 @@ func init() {
 
 func TestHandleConnTwoConnects(t *testing.T) {
 	// Given: a connection with a client
-	c := &testConn{}
+	b := bytes.NewBuffer([]byte{})
 	// Given: we send two connect packets
 	cp := &ConnectPacket{
 		protocolName:   "MQTT",
@@ -27,10 +28,10 @@ func TestHandleConnTwoConnects(t *testing.T) {
 		cleanSession:   1,
 		clientID:       "",
 	}
-	c.Write(encodeTestConnectPkt(cp))
-	c.Write(encodeTestConnectPkt(cp))
+	b.Write(encodeTestConnectPkt(cp))
+	b.Write(encodeTestConnectPkt(cp))
 	// When: we handle this connection
-	err := HandleConn(c)
+	err := HandleClient(newTestClient(b.Bytes()))
 	// Then: we get an error because it is a protocol violation
 	if err != SecondConnectPktError {
 		t.Fatalf("Expected SecondConnectPktError but got %d.", err)
@@ -39,15 +40,15 @@ func TestHandleConnTwoConnects(t *testing.T) {
 
 func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	// Given: a connection with a client
-	c := &testConn{}
+	b := bytes.NewBuffer([]byte{})
 	// Given: a non-connect packet
 	_, pp := newTestPublishRequest(PublishPacket{
 		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})
-	c.Write(pp)
+	b.Write(pp)
 	// When: we send this packet as the first one
-	err := HandleConn(c)
+	err := HandleClient(newTestClient(b.Bytes()))
 	// Then: we get an error because it is a protocol violation
 	if err != ExpectingConnectPktError {
 		t.Fatalf("Expected ExpectingConnectPktError but got %d.", err)
