@@ -39,25 +39,6 @@ func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 	return &SubscribePacket{PacketID: binary.BigEndian.Uint16(packetId), Payload: payload}, nil
 }
 
-func HandleSubscribe(c *Client, fh *FixedHeader) error {
-	b := make([]byte, fh.RemLength)
-	_, err := io.ReadFull(c.Conn, b)
-	if err != nil {
-		return err
-	}
-	sp, err := DecodeSubscribePacket(b)
-	for _, payload := range sp.Payload {
-		subscribers.addSubscriber(c, payload.TopicFilter)
-		c.Topics = append(c.Topics, payload.TopicFilter)
-	}
-	esp := EncodeSubackPacket(sp.PacketID)
-	_, err = c.Conn.Write(esp)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func EncodeSubackPacket(pktID uint16) []byte {
 	var pktType byte = Suback << 4
 	var remLength byte = 2

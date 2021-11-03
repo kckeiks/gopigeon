@@ -18,5 +18,5 @@ var (
 	ConnectFixedHdrReservedFlagError = errors.New("connect reserved flag in fixed header must be zero")
 	ConnectReserveFlagError          = errors.New("connect reserved flag must be zero")
 	PingreqReservedFlagError         = errors.New("pingreq reserved flag must be zero")
-	InvalidQoSValError         = errors.New("qos must be 0, 1 or 2 only")
+	InvalidQoSValError               = errors.New("qos must be 0, 1 or 2 only")
 )

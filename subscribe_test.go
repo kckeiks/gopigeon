@@ -12,7 +12,7 @@ func TestDecodeSubscribePacketSuccess(t *testing.T) {
 		PacketID: 1,
 		Payload:  []SubscribePayload{{TopicFilter: "testtopic", QoS: 0}},
 	}
-	_, sp := newTestSubscribeRequest(expectedResult)
+	_, sp := NewTestSubscribeRequest(expectedResult)
 	// When: we decoded it
 	result, err := DecodeSubscribePacket(sp[2:])
 	// Then: we get a SubscribePacket struct
@@ -26,12 +26,12 @@ func TestDecodeSubscribePacketSuccess(t *testing.T) {
 
 func TestHandleSubscribeSuccess(t *testing.T) {
 	// Given: a connection/ReaderWriter with which we will be able to read a subscribe package
-	fh, sp := newTestSubscribeRequest(SubscribePacket{
+	fh, sp := NewTestSubscribeRequest(SubscribePacket{
 		PacketID: 1,
 		Payload:  []SubscribePayload{{TopicFilter: "testtopic", QoS: 0}},
 	})
 	// without header
-	c := newTestClient(sp[2:])
+	c := NewTestClient(sp[2:])
 	// When: we handle the connection
 	err := HandleSubscribe(c, fh)
 	// Then: there is no error so we assume things are ok

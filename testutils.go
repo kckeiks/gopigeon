@@ -3,7 +3,6 @@ package gopigeon
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"net"
 	"time"
 )
@@ -11,28 +10,6 @@ import (
 // implements net.Conn interface
 type testConn struct {
 	b *bytes.Buffer
-}
-
-func testServer(serverError chan error) {
-	ln, err := net.Listen("tcp", "localhost:8033")
-	if err != nil {
-		panic(fmt.Sprintf("fatal error: %v", err))
-	}
-	conn, err := ln.Accept()
-	if err != nil {
-		panic(fmt.Sprintf("fatal error: %v", err))
-	}
-	err = HandleClient(&Client{Conn: conn})
-	ln.Close()
-	serverError <- err
-}
-
-func testClient() net.Conn {
-	conn, err := net.Dial("tcp", "localhost:8033")
-	if err != nil {
-		panic(fmt.Sprintf("failed to dial: %v\n", err))
-	}
-	return conn
 }
 
 func (tc *testConn) Read(b []byte) (int, error) {
@@ -56,7 +33,7 @@ func (*testConn) SetDeadline(t time.Time) error      { return nil }
 func (*testConn) SetReadDeadline(t time.Time) error  { return nil }
 func (*testConn) SetWriteDeadline(t time.Time) error { return nil }
 
-func newTestClient(data []byte) *Client {
+func NewTestClient(data []byte) *Client {
 	c := &testConn{}
 	c.Write(data)
 	return &Client{
@@ -64,7 +41,7 @@ func newTestClient(data []byte) *Client {
 	}
 }
 
-func newTestEncodedFixedHeader(fh FixedHeader) []byte {
+func NewTestEncodedFixedHeader(fh FixedHeader) []byte {
 	remLen := EncodeRemLength(fh.RemLength)
 	pktType := fh.PktType << 4
 	pktType = pktType | fh.Flags
@@ -72,45 +49,45 @@ func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 	return append(encodedFh, remLen...)
 }
 
-func newPingreqReqRequest() (*FixedHeader, []byte) {
+func NewPingreqReqRequest() (*FixedHeader, []byte) {
 	return &FixedHeader{PktType: Pingreq << 4}, []byte{Pingreq << 4, 0}
 }
 
-func newEncodedPingres() []byte {
+func NewEncodedPingres() []byte {
 	return []byte{Pingres << 4, 0}
 }
 
-func newEncodedDisconnect() []byte {
+func NewEncodedDisconnect() []byte {
 	return []byte{Disconnect << 4, 0}
 }
 
-func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
-	connectInBytes := encodeTestConnectPkt(cp)
+func NewTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
+	connectInBytes := EncodeTestConnectPkt(cp)
 	// TODO: encode flags
 	return &FixedHeader{PktType: Connect, RemLength: uint32(len(connectInBytes[2:]))}, connectInBytes
 }
 
-func encodeTestConnectPkt(cp *ConnectPacket) []byte {
+func EncodeTestConnectPkt(cp *ConnectPacket) []byte {
 	// protocol name
-	pn := []byte(cp.protocolName)
+	pn := []byte(cp.ProtocolName)
 	var pnLen = [2]byte{}
 	binary.BigEndian.PutUint16(pnLen[:], uint16(len(pn)))
 	// data in payload
-	payload := append(make([]byte, 0), encodeStr(cp.clientID)...)
-	if cp.willTopic != "" {
-		payload = append(payload, encodeStr(cp.willTopic)...)
+	payload := append(make([]byte, 0), encodeStr(cp.ClientID)...)
+	if cp.WillTopic != "" {
+		payload = append(payload, encodeStr(cp.WillTopic)...)
 	}
-	if len(cp.willMsg) > 0 {
-		payload = append(payload, encodeBytes(cp.willMsg)...)
+	if len(cp.WillMsg) > 0 {
+		payload = append(payload, encodeBytes(cp.WillMsg)...)
 	}
-	if cp.username != "" {
-		payload = append(payload, encodeStr(cp.username)...)
+	if cp.Username != "" {
+		payload = append(payload, encodeStr(cp.Username)...)
 	}
-	if len(cp.password) > 0 {
-		payload = append(payload, encodeBytes(cp.password)...)
+	if len(cp.Password) > 0 {
+		payload = append(payload, encodeBytes(cp.Password)...)
 	}
 	keepAliveBuf := make([]byte, 2)
-	binary.BigEndian.PutUint16(keepAliveBuf, uint16(cp.keepAlive))
+	binary.BigEndian.PutUint16(keepAliveBuf, uint16(cp.KeepAlive))
 	// # of bytes: 4 bytes (protocol level, connect flags, keep alive) +
 	// 2 to encode protocol name len + len of bytes in protocol name + len of payload
 	lenOfPkt := uint32(4 + 2 + len(pn) + len(payload))
@@ -118,21 +95,21 @@ func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	connect = append(connect, EncodeRemLength(lenOfPkt)...) // rem length
 	connect = append(connect, pnLen[:]...)                  // add protocol name
 	connect = append(connect, pn...)                        // add protocol name
-	connect = append(connect, cp.protocolLevel)
+	connect = append(connect, cp.ProtocolLevel)
 	connect = append(connect, 2)               // TODO: connect flags
 	connect = append(connect, keepAliveBuf...) // TODO: Keep Alive
 	connect = append(connect, payload...)
 	return connect
 }
 
-func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {
+func NewTestConnackRequest(ackFlags, rtrnCode byte) []byte {
 	pktType := byte(Connack << 4)
 	remLength := byte(2)
 	ackFlags = ackFlags & 1
 	return []byte{pktType, remLength, ackFlags, rtrnCode}
 }
 
-func newTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
+func NewTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
 	encodedTopic := encodeStr(pp.Topic)
 	// Note: When QoS is 0 there is no packet id
 	remLen := uint32(len(encodedTopic) + len(pp.Payload))
@@ -144,7 +121,7 @@ func newTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
 	return &FixedHeader{PktType: Publish, RemLength: remLen}, publish
 }
 
-func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
+func NewTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	// Packet data
 	packetIdBuf := make([]byte, PacketIDLen)
 	binary.BigEndian.PutUint16(packetIdBuf, sp.PacketID)
@@ -169,8 +146,8 @@ func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	return &FixedHeader{PktType: Subscribe, RemLength: remLen}, subscribe
 }
 
-func addTestSubscriber(c *Client, topic string) {
-	subscribers = &Subscribers{subscribers: make(map[string][]*Client)}
-	subscribers.subscribers[topic] = []*Client{c}
+func AddTestSubscriber(c *Client, topic string) {
+	SubscriberTable = &Subscribers{subscribers: make(map[string][]*Client)}
+	SubscriberTable.subscribers[topic] = []*Client{c}
 	c.Topics = append(c.Topics, topic)
 }

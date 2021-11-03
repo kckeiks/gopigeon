@@ -9,7 +9,7 @@ import (
 func TestGetFixedHeaderFieldsSuccess(t *testing.T) {
 	// Given: A stream of bytes representing a mqtt header
 	expectedResult := FixedHeader{PktType: Connect, RemLength: 12}
-	h := newTestEncodedFixedHeader(expectedResult)
+	h := NewTestEncodedFixedHeader(expectedResult)
 	// When: we try to decode the header
 	result, _ := ReadFixedHeader(bytes.NewBuffer(h))
 	// Then: we get the values as expected

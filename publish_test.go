@@ -13,7 +13,7 @@ func TestDecodePublishPacket(t *testing.T) {
 		Topic:   "testtopic",
 		Payload: []byte{116, 101, 115, 116, 109, 115, 103},
 	}
-	_, pp := newTestPublishRequest(expectedResult)
+	_, pp := NewTestPublishRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodePublishPacket(pp[2:], false)
@@ -28,10 +28,10 @@ func TestDecodePublishPacket(t *testing.T) {
 
 func TestHandlePublish(t *testing.T) {
 	// Given: we have a topic with a subscriber(s)
-	subscriber := newTestClient([]byte{})
-	addTestSubscriber(subscriber, "testtopic")
+	subscriber := NewTestClient([]byte{})
+	AddTestSubscriber(subscriber, "testtopic")
 	// Given: a Publish packet in bytes
-	fh, pp := newTestPublishRequest(PublishPacket{
+	fh, pp := NewTestPublishRequest(PublishPacket{
 		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})

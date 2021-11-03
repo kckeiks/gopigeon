@@ -13,39 +13,6 @@ type PublishPacket struct {
 	Payload  []byte
 }
 
-func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
-	b := make([]byte, fh.RemLength)
-	_, err := io.ReadFull(rw, b)
-	if err != nil {
-		return err
-	}
-	var hasPktID bool
-	qos := (fh.Flags & 6) >> 1
-	if qos == 3 {
-		return InvalidQoSValError
-	}
-	if qos > 0 {
-		hasPktID = true
-	}	
-	pp, err := DecodePublishPacket(b, hasPktID)
-	if err != nil {
-		return err
-	}
-	ep := EncodePublishPacket(*fh, b)
-	subs, err := subscribers.getSubscribers(pp.Topic)
-	if err != nil {
-		return err
-	}
-	// TODO: if one write op goes wrong, it should not stop us from trying the rest
-	for _, s := range subs {
-		_, err = s.Conn.Write(ep)
-		if err != nil {
-			fmt.Printf("publishing error: %s\n", err.Error())
-		}
-	}
-	return nil
-}
-
 func DecodePublishPacket(b []byte, hasPktID bool) (*PublishPacket, error) {
 	p := &PublishPacket{}
 	pktLen := len(b)
@@ -115,4 +82,3 @@ func NewEncodedPubcomp(packetID uint16) []byte {
 	p := []byte{Pubcomp << 4, 2}
 	return append(p, id...)
 }
-

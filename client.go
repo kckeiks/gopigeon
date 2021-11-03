@@ -8,16 +8,16 @@ import (
 	"time"
 )
 
-const clientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const ClientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var defaultKeepAliveTime = 120
-var subscribers = &Subscribers{subscribers: make(map[string][]*Client)}
-var clientIDSet = &idSet{set: make(map[string]struct{})}
+var SubscriberTable = &Subscribers{subscribers: make(map[string][]*Client)}
+var ClientIDSet = &idSet{set: make(map[string]struct{})}
 
 //
 type Client struct {
 	Conn       net.Conn
-	ClientID   string
+	ID         string
 	Topics     []string // might be able to remove this
 	KeepAlive  int
 	MsgManager *MessageManager
@@ -66,13 +66,13 @@ func (m *MessageManager) len() int {
 	return len(m.queued)
 }
 
-func (s *Subscribers) addSubscriber(c *Client, topic string) {
+func (s *Subscribers) AddSubscriber(c *Client, topic string) {
 	s.mu.Lock()
 	s.subscribers[topic] = append(s.subscribers[topic], c)
 	s.mu.Unlock()
 }
 
-func (s *Subscribers) removeSubscriber(c *Client, topic string) {
+func (s *Subscribers) RemoveSubscriber(c *Client, topic string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	subs, ok := s.subscribers[topic]
@@ -80,13 +80,13 @@ func (s *Subscribers) removeSubscriber(c *Client, topic string) {
 		return
 	}
 	for i, sub := range subs {
-		if c.ClientID == sub.ClientID {
+		if c.ID == sub.ID {
 			s.subscribers[topic] = append(s.subscribers[topic][:i], s.subscribers[topic][i+1:]...)
 		}
 	}
 }
 
-func (s *Subscribers) getSubscribers(topic string) ([]*Client, error) {
+func (s *Subscribers) GetSubscribers(topic string) ([]*Client, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	subs, ok := s.subscribers[topic]
@@ -101,7 +101,7 @@ func NewClientID() string {
 	var b strings.Builder
 	b.Grow(MaxClientIDLen)
 	for i := 0; i < MaxClientIDLen; i++ {
-		b.WriteByte(clientIDletters[rand.Intn(len(clientIDletters))])
+		b.WriteByte(ClientIDletters[rand.Intn(len(ClientIDletters))])
 	}
 	return b.String()
 }
@@ -118,21 +118,32 @@ func IsValidClientID(id string) bool {
 	return true
 }
 
-func (s *idSet) saveClientID(id string) {
+func (s *idSet) SaveClientID(id string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.set[id] = struct{}{}
 }
 
-func (s *idSet) isClientIDUnique(id string) bool {
+func (s *idSet) IsClientIDUnique(id string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	_, ok := s.set[id]
 	return !ok
 }
 
-func (s *idSet) removeClientID(id string) {
+func (s *idSet) RemoveClientID(id string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.set, id)
+}
+
+func (c *Client) resetReadDeadline() {
+	// We set Deadline to one and a half the Client keep alive value.
+	// This value could be user given or the server's default value.
+	keepAlive := time.Second * time.Duration(c.KeepAlive+c.KeepAlive/2)
+	if c.KeepAlive%2 == 1 {
+		// add half a second
+		keepAlive += time.Millisecond * time.Duration(500)
+	}
+	c.Conn.SetReadDeadline(time.Now().Add(keepAlive))
 }

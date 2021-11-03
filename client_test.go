@@ -6,28 +6,28 @@ import (
 )
 
 func TestAddSubscriberSuccess(t *testing.T) {
-	// Given: we have a table of subscribers
-	subscribers = &Subscribers{subscribers: make(map[string][]*Client)}
+	// Given: we have a table of SubscriberTable
+	SubscriberTable = &Subscribers{subscribers: make(map[string][]*Client)}
 	// Given: a subscriber
-	sub := newTestClient([]byte{})
+	sub := NewTestClient([]byte{})
 	// When: we add a subscriber given a topic
-	subscribers.addSubscriber(sub, "testtopic")
+	SubscriberTable.AddSubscriber(sub, "testtopic")
 	// Then: we have that subscriber added to the table
-	if !reflect.DeepEqual(subscribers.subscribers["testtopic"], []*Client{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", subscribers.subscribers["testtopic"], []*Client{sub})
+	if !reflect.DeepEqual(SubscriberTable.subscribers["testtopic"], []*Client{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", SubscriberTable.subscribers["testtopic"], []*Client{sub})
 	}
 }
 
 func TestGetSubscribersSuccess(t *testing.T) {
 	// Given: we have to table of subscriber
 	// Given: an existing topic
-	sub := newTestClient([]byte{})
-	addTestSubscriber(sub, "testtopic")
+	sub := NewTestClient([]byte{})
+	AddTestSubscriber(sub, "testtopic")
 	// When: we try to find the subs for the topic in the table
-	result, err := subscribers.getSubscribers("testtopic")
+	result, err := SubscriberTable.GetSubscribers("testtopic")
 	// Then: We get the right list of subs
 	if err != nil {
-		t.Fatalf("getSubscribers returned an unexpected error %+v", err)
+		t.Fatalf("GetSubscribers returned an unexpected error %+v", err)
 	}
 	if !reflect.DeepEqual(result, []*Client{sub}) {
 		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", result, []*Client{sub})
@@ -36,17 +36,17 @@ func TestGetSubscribersSuccess(t *testing.T) {
 
 func TestGetSubscribersFail(t *testing.T) {
 	// Given: we have to table of subscriber
-	sub := newTestClient([]byte{})
-	addTestSubscriber(sub, "testtopic")
+	sub := NewTestClient([]byte{})
+	AddTestSubscriber(sub, "testtopic")
 	// Given: a non existing topic
 	unknownTopic := "foo"
 	// When: we try to find the subs for the topic in the table
-	_, err := subscribers.getSubscribers(unknownTopic)
+	_, err := SubscriberTable.GetSubscribers(unknownTopic)
 	// Then: We get an error
 	if err != UnknownTopicError {
-		t.Fatalf("getSubscribers did not returned an error.")
+		t.Fatalf("GetSubscribers did not returned an error.")
 	}
-	_, ok := subscribers.subscribers[unknownTopic]
+	_, ok := SubscriberTable.subscribers[unknownTopic]
 	if ok {
 		t.Fatalf("Expected that there were no records for the unknown topic.")
 	}
@@ -79,23 +79,23 @@ func TestIsValidClientIDInvalid(t *testing.T) {
 
 func TestWhenClientIDIsUnique(t *testing.T) {
 	// Given: client ID set with some key
-	clientIDSet = &idSet{set: make(map[string]struct{})}
+	ClientIDSet = &idSet{set: make(map[string]struct{})}
 	// Given: our client ID is not in the set
 	clientID := "unique"
 	// When: client ID
-	if !clientIDSet.isClientIDUnique(clientID) {
+	if !ClientIDSet.IsClientIDUnique(clientID) {
 		t.Fatalf("client id should be unique")
 	}
 }
 
 func TestWhenClientIDIsNotUnique(t *testing.T) {
 	// Given: client ID set with some key
-	clientIDSet = &idSet{set: make(map[string]struct{})}
+	ClientIDSet = &idSet{set: make(map[string]struct{})}
 	// Given: our client ID is in the set
 	clientID := "notunique"
-	clientIDSet.set[clientID] = struct{}{}
+	ClientIDSet.set[clientID] = struct{}{}
 	// When: client ID
-	if clientIDSet.isClientIDUnique(clientID) {
+	if ClientIDSet.IsClientIDUnique(clientID) {
 		t.Fatalf("client id should not be unique")
 	}
 }
