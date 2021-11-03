@@ -1,11 +1,12 @@
-package gopigeon
+package internal
 
 import (
 	"fmt"
+	"github.com/kckeiks/gopigeon/mqttlib"
 	"io"
 )
 
-func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
+func HandlePublish(rw io.ReadWriter, fh *mqttlib.FixedHeader) error {
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(rw, b)
 	if err != nil {
@@ -14,16 +15,16 @@ func HandlePublish(rw io.ReadWriter, fh *FixedHeader) error {
 	var hasPktID bool
 	qos := (fh.Flags & 6) >> 1
 	if qos == 3 {
-		return InvalidQoSValError
+		return mqttlib.InvalidQoSValError
 	}
 	if qos > 0 {
 		hasPktID = true
 	}
-	pp, err := DecodePublishPacket(b, hasPktID)
+	pp, err := mqttlib.DecodePublishPacket(b, hasPktID)
 	if err != nil {
 		return err
 	}
-	ep := EncodePublishPacket(*fh, b)
+	ep := mqttlib.EncodePublishPacket(*fh, b)
 	subs, err := SubscriberTable.GetSubscribers(pp.Topic)
 	if err != nil {
 		return err

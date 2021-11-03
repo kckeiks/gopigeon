@@ -1,4 +1,4 @@
-package gopigeon
+package mqttlib
 
 import (
 	"encoding/binary"
@@ -148,14 +148,14 @@ func ReadEncodedStr(r io.Reader) (string, error) {
 	return string(str), nil
 }
 
-func encodeStr(s string) []byte {
+func EncodeStr(s string) []byte {
 	b := []byte(s)
 	encodedStrLen := make([]byte, 2)
 	binary.BigEndian.PutUint16(encodedStrLen, uint16(len(b))) // prefix with len
 	return append(encodedStrLen, b[:uint16(len(b))]...)
 }
 
-func encodeBytes(b []byte) []byte {
+func EncodeBytes(b []byte) []byte {
 	encodedStrLen := make([]byte, 2)
 	binary.BigEndian.PutUint16(encodedStrLen, uint16(len(b))) // prefix with len
 	return append(encodedStrLen, b[:uint16(len(b))]...)

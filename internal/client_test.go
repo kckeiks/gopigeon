@@ -1,20 +1,21 @@
-package gopigeon
+package internal
 
 import (
+	"github.com/kckeiks/gopigeon/mqttlib"
 	"reflect"
 	"testing"
 )
 
 func TestAddSubscriberSuccess(t *testing.T) {
 	// Given: we have a table of SubscriberTable
-	SubscriberTable = &Subscribers{subscribers: make(map[string][]*Client)}
+	SubscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
 	// Given: a subscriber
 	sub := NewTestClient([]byte{})
 	// When: we add a subscriber given a topic
 	SubscriberTable.AddSubscriber(sub, "testtopic")
 	// Then: we have that subscriber added to the table
-	if !reflect.DeepEqual(SubscriberTable.subscribers["testtopic"], []*Client{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", SubscriberTable.subscribers["testtopic"], []*Client{sub})
+	if !reflect.DeepEqual(SubscriberTable.Subscribers["testtopic"], []*Client{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", SubscriberTable.Subscribers["testtopic"], []*Client{sub})
 	}
 }
 
@@ -43,10 +44,10 @@ func TestGetSubscribersFail(t *testing.T) {
 	// When: we try to find the subs for the topic in the table
 	_, err := SubscriberTable.GetSubscribers(unknownTopic)
 	// Then: We get an error
-	if err != UnknownTopicError {
+	if err != mqttlib.UnknownTopicError {
 		t.Fatalf("GetSubscribers did not returned an error.")
 	}
-	_, ok := SubscriberTable.subscribers[unknownTopic]
+	_, ok := SubscriberTable.Subscribers[unknownTopic]
 	if ok {
 		t.Fatalf("Expected that there were no records for the unknown topic.")
 	}

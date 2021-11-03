@@ -1,107 +1,14 @@
-package gopigeon
+package internal
 
 import (
+	"github.com/kckeiks/gopigeon/mqttlib"
 	"reflect"
 	"testing"
 )
 
-func TestDecodeConnectPacketSuccess(t *testing.T) {
-	// Given: a stream/slice of bytes that represents a connect pkt
-	expectedResult := &ConnectPacket{
-		ProtocolName:  "MQTT",
-		ProtocolLevel: 4,
-		CleanSession:  1,
-	}
-	_, cp := NewTestConnectRequest(expectedResult)
-	// When: we try to decoded it
-	// we pass the packet without the fixed header
-	result, err := DecodeConnectPacket(cp[2:])
-	// Then: we get a connect packet struct with the right values
-	if err != nil {
-		t.Fatalf("DecodeConnectPacket failed with err %d", err)
-	}
-	if !reflect.DeepEqual(result, expectedResult) {
-		t.Fatalf("Got ConnectPackage %+v but expected %+v,", result, expectedResult)
-	}
-}
-
-func TestDecodeConnectPacketInvalidReservedFlag(t *testing.T) {
-	// Given: a stream/slice of bytes that represents a connect pkt
-	// Given: connect reserved flag bit is not zero
-	_, cp := NewTestConnectRequest(&ConnectPacket{
-		ProtocolName:  "MQTT",
-		ProtocolLevel: 4,
-		CleanSession:  1,
-	})
-	cp[len(cp)-5] = 3
-	// When: we try to decoded it
-	// we pass the packet without the fixed header
-	_, err := DecodeConnectPacket(cp[2:])
-	// Then: we get an error
-	if err != ConnectReserveFlagError {
-		t.Fatalf("expected ConnectReserveFlagError but instead got %d", err)
-	}
-}
-
-func TestDecodeConnectPacketInvalidProtocolName(t *testing.T) {
-	// Given: a stream/slice of bytes that represents a connect pkt
-	expectedResult := &ConnectPacket{
-		ProtocolName:  "INVALID",
-		ProtocolLevel: 4,
-		CleanSession:  1,
-	}
-	_, cp := NewTestConnectRequest(expectedResult)
-	// When: we try to decoded it
-	// we pass the packet without the fixed header
-	_, err := DecodeConnectPacket(cp[2:])
-	// Then: we get a connect packet struct with the right values
-	if err == nil {
-		t.Fatalf("DecodeConnectPacket returned nil for error.")
-	}
-	if err != ProtocolNameError {
-		t.Fatalf("Expected %d but got %d", ProtocolNameError, err)
-	}
-}
-
-func TestDecodeConnectPacketInvalidProtocolLevel(t *testing.T) {
-	// Given: a stream/slice of bytes that represents a connect pkt
-	expectedResult := &ConnectPacket{
-		ProtocolName:  "MQTT",
-		ProtocolLevel: 8, // bad
-		CleanSession:  1,
-	}
-	_, cp := NewTestConnectRequest(expectedResult)
-	// When: we try to decoded it
-	// we pass the packet without the fixed header
-	_, err := DecodeConnectPacket(cp[2:])
-	// Then: we get a connect packet struct with the right values
-	if err == nil {
-		t.Fatalf("DecodeConnectPacket returned nil for error.")
-	}
-	if err != ProtocolLevelError {
-		t.Fatalf("Expected %d but got %d", ProtocolLevelError, err)
-	}
-}
-
-func TestEncodeConnackPacketSuccess(t *testing.T) {
-	// Given: a decoded connack packet
-	cp := ConnackPacket{
-		AckFlags: 0,
-		RtrnCode: 0,
-	}
-	// When: we try to encode it
-	result := EncodeConnackPacket(cp)
-	// Then: we get a stream/slice of bytes that represent the pkt
-	// expectedResult containing AckFlags: 0 and RtrnCode: 0
-	expectedResult := NewTestConnackRequest(cp.AckFlags, cp.RtrnCode)
-	if !reflect.DeepEqual(result, expectedResult) {
-		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", result, expectedResult)
-	}
-}
-
 func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: A connect request for the wire
-	fh, connect := NewTestConnectRequest(&ConnectPacket{
+	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -125,7 +32,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 
 func TestHandleConnectPacketInvalidFixedHdrReservedFlag(t *testing.T) {
 	// Given: A connect request for the wire
-	fh, connect := NewTestConnectRequest(&ConnectPacket{
+	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -137,14 +44,14 @@ func TestHandleConnectPacketInvalidFixedHdrReservedFlag(t *testing.T) {
 	// When: we handle a connnect packet
 	err := HandleConnect(conn, fh)
 	// Then: we get an error
-	if err != ConnectFixedHdrReservedFlagError {
+	if err != mqttlib.ConnectFixedHdrReservedFlagError {
 		t.Fatalf("expected ConnectFixedHdrReservedFlagError but instead got %s", err)
 	}
 }
 
 func TestHandleConnectCreateClientID(t *testing.T) {
 	// Given: encoded connect pkt with client id of size zero
-	fh, connect := NewTestConnectRequest(&ConnectPacket{
+	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -162,13 +69,13 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 
 func TestHandleConnectValidClientID(t *testing.T) {
 	// Given: encoded connect pkt with non-zero length client id
-	decodedConnect := &ConnectPacket{
+	decodedConnect := &mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
 		ClientID:      "testid",
 	}
-	fh, connect := NewTestConnectRequest(decodedConnect)
+	fh, connect := mqttlib.NewTestConnectRequest(decodedConnect)
 	// Given: a connection with the connect pkt
 	conn := NewTestClient(connect[2:])
 	// When: we handle the connection
@@ -186,7 +93,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 
 func TestHandleConnectInvalidClientID(t *testing.T) {
 	// Given: encoded connect pkt with client id of size zero
-	fh, connect := NewTestConnectRequest(&ConnectPacket{
+	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -197,7 +104,7 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is an error
-	if err != InvalidClientIDError {
+	if err != mqttlib.InvalidClientIDError {
 		t.Fatalf("expected InvalidClientIDError but got %s", err.Error())
 	}
 }
@@ -209,7 +116,7 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	clientID := "testid"
 	ClientIDSet.set[clientID] = struct{}{}
 	// Given: encoded connect pkt with non-zero length client id
-	fh, connect := NewTestConnectRequest(&ConnectPacket{
+	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -220,7 +127,7 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	// When: we handle the connection
 	err := HandleConnect(conn, fh)
 	// Then: there is an error
-	if err != UniqueClientIDError {
+	if err != mqttlib.UniqueClientIDError {
 		t.Fatalf("expected UniqueClientIDError but got %s", err.Error())
 	}
 }

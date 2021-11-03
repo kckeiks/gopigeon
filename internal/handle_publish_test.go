@@ -1,37 +1,19 @@
-package gopigeon
+package internal
 
 import (
 	"bytes"
+	"github.com/kckeiks/gopigeon/mqttlib"
 	"io"
 	"reflect"
 	"testing"
 )
-
-func TestDecodePublishPacket(t *testing.T) {
-	// Given: a stream/slice of bytes that represents a connect pkt
-	expectedResult := PublishPacket{
-		Topic:   "testtopic",
-		Payload: []byte{116, 101, 115, 116, 109, 115, 103},
-	}
-	_, pp := NewTestPublishRequest(expectedResult)
-	// When: we try to decoded it
-	// we pass the packet without the fixed header
-	result, err := DecodePublishPacket(pp[2:], false)
-	// Then: we get a connect packet struct with the right values
-	if err != nil {
-		t.Fatalf("DecodePublishPacket failed with err %d", err)
-	}
-	if !reflect.DeepEqual(result, &expectedResult) {
-		t.Fatalf("Got PublishPacket %+v but expected %+v,", result, &expectedResult)
-	}
-}
 
 func TestHandlePublish(t *testing.T) {
 	// Given: we have a topic with a subscriber(s)
 	subscriber := NewTestClient([]byte{})
 	AddTestSubscriber(subscriber, "testtopic")
 	// Given: a Publish packet in bytes
-	fh, pp := NewTestPublishRequest(PublishPacket{
+	fh, pp := mqttlib.NewTestPublishRequest(mqttlib.PublishPacket{
 		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})

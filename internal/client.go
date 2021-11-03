@@ -1,6 +1,7 @@
-package gopigeon
+package internal
 
 import (
+	"github.com/kckeiks/gopigeon/mqttlib"
 	"math/rand"
 	"net"
 	"strings"
@@ -11,7 +12,7 @@ import (
 const ClientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var defaultKeepAliveTime = 120
-var SubscriberTable = &Subscribers{subscribers: make(map[string][]*Client)}
+var SubscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
 var ClientIDSet = &idSet{set: make(map[string]struct{})}
 
 //
@@ -31,13 +32,13 @@ type MessageManager struct {
 }
 
 type Message struct {
-	State MessageState
+	State mqttlib.MessageState
 	Data  []byte
 }
 
 type Subscribers struct {
-	mu          sync.Mutex
-	subscribers map[string][]*Client
+	Mu          sync.Mutex
+	Subscribers map[string][]*Client
 }
 
 type idSet struct {
@@ -67,47 +68,47 @@ func (m *MessageManager) len() int {
 }
 
 func (s *Subscribers) AddSubscriber(c *Client, topic string) {
-	s.mu.Lock()
-	s.subscribers[topic] = append(s.subscribers[topic], c)
-	s.mu.Unlock()
+	s.Mu.Lock()
+	s.Subscribers[topic] = append(s.Subscribers[topic], c)
+	s.Mu.Unlock()
 }
 
 func (s *Subscribers) RemoveSubscriber(c *Client, topic string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	subs, ok := s.subscribers[topic]
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
+	subs, ok := s.Subscribers[topic]
 	if !ok {
 		return
 	}
 	for i, sub := range subs {
 		if c.ID == sub.ID {
-			s.subscribers[topic] = append(s.subscribers[topic][:i], s.subscribers[topic][i+1:]...)
+			s.Subscribers[topic] = append(s.Subscribers[topic][:i], s.Subscribers[topic][i+1:]...)
 		}
 	}
 }
 
 func (s *Subscribers) GetSubscribers(topic string) ([]*Client, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	subs, ok := s.subscribers[topic]
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
+	subs, ok := s.Subscribers[topic]
 	if ok {
 		return subs, nil
 	}
-	return nil, UnknownTopicError
+	return nil, mqttlib.UnknownTopicError
 }
 
 func NewClientID() string {
 	rand.Seed(time.Now().UnixNano())
 	var b strings.Builder
-	b.Grow(MaxClientIDLen)
-	for i := 0; i < MaxClientIDLen; i++ {
+	b.Grow(mqttlib.MaxClientIDLen)
+	for i := 0; i < mqttlib.MaxClientIDLen; i++ {
 		b.WriteByte(ClientIDletters[rand.Intn(len(ClientIDletters))])
 	}
 	return b.String()
 }
 
 func IsValidClientID(id string) bool {
-	if len(id) > MaxClientIDLen || len(id) == 0 {
+	if len(id) > mqttlib.MaxClientIDLen || len(id) == 0 {
 		return false
 	}
 	for _, r := range id {

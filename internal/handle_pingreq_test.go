@@ -1,4 +1,4 @@
-package gopigeon
+package internal
 
 import (
 	"reflect"

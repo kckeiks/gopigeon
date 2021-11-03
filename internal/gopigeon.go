@@ -1,7 +1,8 @@
-package gopigeon
+package internal
 
 import (
 	"fmt"
+	"github.com/kckeiks/gopigeon/mqttlib"
 	"net"
 	"os"
 )
@@ -24,14 +25,14 @@ func ListenAndServe() {
 
 func HandleClient(c *Client) error {
 	defer HandleDisconnect(c)
-	fh, err := ReadFixedHeader(c.Conn)
+	fh, err := mqttlib.ReadFixedHeader(c.Conn)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	if fh.PktType != Connect {
-		fmt.Println(ExpectingConnectPktError)
-		return ExpectingConnectPktError
+	if fh.PktType != mqttlib.Connect {
+		fmt.Println(mqttlib.ExpectingConnectPktError)
+		return mqttlib.ExpectingConnectPktError
 	}
 	err = HandleConnect(c, fh)
 	if err != nil {
@@ -40,21 +41,21 @@ func HandleClient(c *Client) error {
 	}
 	for {
 		c.resetReadDeadline()
-		fh, err := ReadFixedHeader(c.Conn)
+		fh, err := mqttlib.ReadFixedHeader(c.Conn)
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 		switch fh.PktType {
-		case Publish:
+		case mqttlib.Publish:
 			err = HandlePublish(c.Conn, fh)
-		case Subscribe:
+		case mqttlib.Subscribe:
 			err = HandleSubscribe(c, fh)
-		case Pingreq:
+		case mqttlib.Pingreq:
 			err = HandlePingreq(c, fh)
-		case Connect:
-			err = SecondConnectPktError
-		case Disconnect:
+		case mqttlib.Connect:
+			err = mqttlib.SecondConnectPktError
+		case mqttlib.Disconnect:
 			return nil
 		default:
 			fmt.Println("warning: unknonw packet")

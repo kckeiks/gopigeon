@@ -1,17 +1,20 @@
-package gopigeon
+package internal
 
-import "io"
+import (
+	"github.com/kckeiks/gopigeon/mqttlib"
+	"io"
+)
 
-func HandleConnect(c *Client, fh *FixedHeader) error {
+func HandleConnect(c *Client, fh *mqttlib.FixedHeader) error {
 	if fh.Flags != 0 {
-		return ConnectFixedHdrReservedFlagError
+		return mqttlib.ConnectFixedHdrReservedFlagError
 	}
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(c.Conn, b)
 	if err != nil {
 		return err
 	}
-	connectPkt, err := DecodeConnectPacket(b)
+	connectPkt, err := mqttlib.DecodeConnectPacket(b)
 	if err != nil {
 		return err
 	}
@@ -25,12 +28,12 @@ func HandleConnect(c *Client, fh *FixedHeader) error {
 	if !IsValidClientID(connectPkt.ClientID) {
 		// Server guarantees id generated will be valid so client sent us invalid id
 		// TODO: send connack with 2 error code
-		return InvalidClientIDError
+		return mqttlib.InvalidClientIDError
 	}
 	if !ClientIDSet.IsClientIDUnique(connectPkt.ClientID) {
 		// Server guarantees id generated will be unique so client sent us used id
 		// TODO: send connack with 2 error code
-		return UniqueClientIDError
+		return mqttlib.UniqueClientIDError
 	}
 	ClientIDSet.SaveClientID(connectPkt.ClientID)
 	c.ID = connectPkt.ClientID
@@ -38,7 +41,7 @@ func HandleConnect(c *Client, fh *FixedHeader) error {
 	if connectPkt.KeepAlive == 0 {
 		c.KeepAlive = defaultKeepAliveTime
 	}
-	encodedConnackPkt := EncodeConnackPacket(ConnackPacket{
+	encodedConnackPkt := mqttlib.EncodeConnackPacket(mqttlib.ConnackPacket{
 		AckFlags: 0,
 		RtrnCode: 0,
 	})

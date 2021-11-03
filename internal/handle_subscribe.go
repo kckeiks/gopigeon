@@ -1,19 +1,22 @@
-package gopigeon
+package internal
 
-import "io"
+import (
+	"github.com/kckeiks/gopigeon/mqttlib"
+	"io"
+)
 
-func HandleSubscribe(c *Client, fh *FixedHeader) error {
+func HandleSubscribe(c *Client, fh *mqttlib.FixedHeader) error {
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(c.Conn, b)
 	if err != nil {
 		return err
 	}
-	sp, err := DecodeSubscribePacket(b)
+	sp, err := mqttlib.DecodeSubscribePacket(b)
 	for _, payload := range sp.Payload {
 		SubscriberTable.AddSubscriber(c, payload.TopicFilter)
 		c.Topics = append(c.Topics, payload.TopicFilter)
 	}
-	esp := EncodeSubackPacket(sp.PacketID)
+	esp := mqttlib.EncodeSubackPacket(sp.PacketID)
 	_, err = c.Conn.Write(esp)
 	if err != nil {
 		return err
