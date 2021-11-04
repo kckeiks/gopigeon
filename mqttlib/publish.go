@@ -50,10 +50,22 @@ func DecodePublishPacket(r io.Reader, fh *FixedHeader) (*PublishPacket, error) {
 	return p, nil
 }
 
-func EncodePublishPacket(b []byte) []byte {
-	fixedHeader := []byte{Publish << 4}
-	fixedHeader = append(fixedHeader, EncodeRemLength(uint32(len(b)))...)
-	return append(fixedHeader, b...)
+func EncodePublishPacket(p *PublishPacket) []byte {
+	flags := (p.Dup << 3) & 8
+	flags |= (p.QoS << 1) & 6
+	flags |= p.Retain & 1
+	fixedHeader := []byte{(Publish << 4) | flags}
+	topic := EncodeStr(p.Topic)
+	var pktID []byte
+	if p.QoS > 0 {
+		pktID = make([]byte, 2)
+		binary.BigEndian.PutUint16(pktID, p.PacketID)
+	}
+	remLength := len(topic) + len(pktID) + len(p.Payload)
+	pkt := append(fixedHeader, EncodeRemLength(uint32(remLength))...)
+	pkt = append(pkt, topic...)
+	pkt = append(pkt, pktID...)
+	return append(pkt, p.Payload...)
 }
 
 func (p *PublishPacket) String() string {

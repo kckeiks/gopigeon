@@ -1,6 +1,7 @@
 package mqttlib
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -14,7 +15,7 @@ func TestDecodePublishPacket(t *testing.T) {
 	fh, pp := newTestPublishRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
-	result, err := DecodePublishPacket(pp[2:], fh)
+	result, err := DecodePublishPacket(bytes.NewBuffer(pp[2:]), fh)
 	// Then: we get a connect packet struct with the right values
 	if err != nil {
 		t.Fatalf("DecodePublishPacket failed with err %d", err)

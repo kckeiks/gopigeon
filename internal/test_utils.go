@@ -11,20 +11,14 @@ import (
 
 // implements net.Conn interface
 type testConn struct {
-	b *bytes.Buffer
+	b bytes.Buffer
 }
 
 func (tc *testConn) Read(b []byte) (int, error) {
-	if tc.b == nil {
-		tc.b = bytes.NewBuffer([]byte{})
-	}
 	return tc.b.Read(b)
 }
 
 func (tc *testConn) Write(b []byte) (int, error) {
-	if tc.b == nil {
-		tc.b = bytes.NewBuffer([]byte{})
-	}
 	return tc.b.Write(b)
 }
 

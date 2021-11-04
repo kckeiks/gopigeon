@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
@@ -13,17 +14,17 @@ func handlePublish(c *Client, fh *mqttlib.FixedHeader) error {
 	if err != nil {
 		return err
 	}
-	pp, err := mqttlib.DecodePublishPacket(b, fh)
+	p, err := mqttlib.DecodePublishPacket(bytes.NewBuffer(b), fh)
 	if err != nil {
 		return err
 	}
-	publish(b, pp)
+	publish(p)
 	return nil
 }
 
-func publish(b []byte, pp *mqttlib.PublishPacket) error {
-	ep := mqttlib.EncodePublishPacket(b)
-	subs, err := subscriberTable.GetSubscribers(pp.Topic)
+func publish(p *mqttlib.PublishPacket) error {
+	ep := mqttlib.EncodePublishPacket(p)
+	subs, err := subscriberTable.GetSubscribers(p.Topic)
 	if err != nil {
 		return err
 	}
