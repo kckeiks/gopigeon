@@ -112,10 +112,10 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 
 func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	// Given: client ID set with some keys
-	ClientIDSet = &idSet{set: make(map[string]struct{})}
+	clientIDSet = &idSet{set: make(map[string]struct{})}
 	// Given: our client ID is in the set so not unique
 	clientID := "testid"
-	ClientIDSet.set[clientID] = struct{}{}
+	clientIDSet.set[clientID] = struct{}{}
 	// Given: encoded connect pkt with non-zero length client id
 	fh, connect := newTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
@@ -134,14 +134,14 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 }
 
 func TestHandleClose(t *testing.T) {
-	// Given: we have a connection (client) in our SubscriberTable table for some topic
+	// Given: we have a connection (client) in our subscriberTable table for some topic
 	topic := "sometopic"
 	connection := newTestClient([]byte{})
 	connection.ID = "testclientid"
 	addTestSubscriber(connection, topic)
 	// assert
 	subscribed := false
-	subscriberResult, _ := SubscriberTable.GetSubscribers(topic)
+	subscriberResult, _ := subscriberTable.GetSubscribers(topic)
 	for _, s := range subscriberResult {
 		if s.ID == connection.ID {
 			subscribed = true
@@ -151,16 +151,16 @@ func TestHandleClose(t *testing.T) {
 		t.Fatalf("given failed: client was not added to subscriber table")
 	}
 	// Given: we have the connection's client ID in our client ID set
-	ClientIDSet = &idSet{set: make(map[string]struct{})}
-	ClientIDSet.set[connection.ID] = struct{}{}
+	clientIDSet = &idSet{set: make(map[string]struct{})}
+	clientIDSet.set[connection.ID] = struct{}{}
 	// assert
-	if ClientIDSet.IsClientIDUnique(connection.ID) {
+	if clientIDSet.IsClientIDUnique(connection.ID) {
 		t.Fatalf("given failed: client id should be not be unique because it should have been added")
 	}
 	// When: there is a disconnect
 	HandleDisconnect(connection)
-	// Then: the client is not in our SubscriberTable table
-	subscriberResult, err := SubscriberTable.GetSubscribers(topic)
+	// Then: the client is not in our subscriberTable table
+	subscriberResult, err := subscriberTable.GetSubscribers(topic)
 	if err != nil {
 		t.Fatalf("unexpected error %+v\n", err)
 	}
@@ -170,7 +170,7 @@ func TestHandleClose(t *testing.T) {
 		}
 	}
 	// Then: the client's client id is not in our client id set
-	if !ClientIDSet.IsClientIDUnique(connection.ID) {
+	if !clientIDSet.IsClientIDUnique(connection.ID) {
 		t.Fatalf("client id should be unique")
 	}
 }

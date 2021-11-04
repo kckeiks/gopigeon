@@ -8,15 +8,15 @@ import (
 )
 
 func TestAddSubscriberSuccess(t *testing.T) {
-	// Given: we have a table of SubscriberTable
-	SubscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
+	// Given: we have a table of subscriberTable
+	subscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
 	// Given: a subscriber
 	sub := newTestClient([]byte{})
 	// When: we add a subscriber given a topic
-	SubscriberTable.AddSubscriber(sub, "testtopic")
+	subscriberTable.AddSubscriber(sub, "testtopic")
 	// Then: we have that subscriber added to the table
-	if !reflect.DeepEqual(SubscriberTable.Subscribers["testtopic"], []*Client{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", SubscriberTable.Subscribers["testtopic"], []*Client{sub})
+	if !reflect.DeepEqual(subscriberTable.Subscribers["testtopic"], []*Client{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", subscriberTable.Subscribers["testtopic"], []*Client{sub})
 	}
 }
 
@@ -26,7 +26,7 @@ func TestGetSubscribersSuccess(t *testing.T) {
 	sub := newTestClient([]byte{})
 	addTestSubscriber(sub, "testtopic")
 	// When: we try to find the subs for the topic in the table
-	result, err := SubscriberTable.GetSubscribers("testtopic")
+	result, err := subscriberTable.GetSubscribers("testtopic")
 	// Then: We get the right list of subs
 	if err != nil {
 		t.Fatalf("GetSubscribers returned an unexpected error %+v", err)
@@ -43,12 +43,12 @@ func TestGetSubscribersFail(t *testing.T) {
 	// Given: a non existing topic
 	unknownTopic := "foo"
 	// When: we try to find the subs for the topic in the table
-	_, err := SubscriberTable.GetSubscribers(unknownTopic)
+	_, err := subscriberTable.GetSubscribers(unknownTopic)
 	// Then: We get an error
 	if err != mqttlib.UnknownTopicError {
 		t.Fatalf("GetSubscribers did not returned an error.")
 	}
-	_, ok := SubscriberTable.Subscribers[unknownTopic]
+	_, ok := subscriberTable.Subscribers[unknownTopic]
 	if ok {
 		t.Fatalf("Expected that there were no records for the unknown topic.")
 	}
@@ -81,23 +81,23 @@ func TestIsValidClientIDInvalid(t *testing.T) {
 
 func TestWhenClientIDIsUnique(t *testing.T) {
 	// Given: client ID set with some key
-	ClientIDSet = &idSet{set: make(map[string]struct{})}
+	clientIDSet = &idSet{set: make(map[string]struct{})}
 	// Given: our client ID is not in the set
 	clientID := "unique"
 	// When: client ID
-	if !ClientIDSet.IsClientIDUnique(clientID) {
+	if !clientIDSet.IsClientIDUnique(clientID) {
 		t.Fatalf("client id should be unique")
 	}
 }
 
 func TestWhenClientIDIsNotUnique(t *testing.T) {
 	// Given: client ID set with some key
-	ClientIDSet = &idSet{set: make(map[string]struct{})}
+	clientIDSet = &idSet{set: make(map[string]struct{})}
 	// Given: our client ID is in the set
 	clientID := "notunique"
-	ClientIDSet.set[clientID] = struct{}{}
+	clientIDSet.set[clientID] = struct{}{}
 	// When: client ID
-	if ClientIDSet.IsClientIDUnique(clientID) {
+	if clientIDSet.IsClientIDUnique(clientID) {
 		t.Fatalf("client id should not be unique")
 	}
 }

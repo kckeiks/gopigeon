@@ -63,8 +63,8 @@ func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {
 }
 
 func addTestSubscriber(c *Client, topic string) {
-	SubscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
-	SubscriberTable.Subscribers[topic] = []*Client{c}
+	subscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
+	subscriberTable.Subscribers[topic] = []*Client{c}
 	c.Topics = append(c.Topics, topic)
 }
 

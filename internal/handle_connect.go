@@ -22,7 +22,7 @@ func HandleConnect(c *Client, fh *mqttlib.FixedHeader) error {
 	if len(connectPkt.ClientID) == 0 {
 		connectPkt.ClientID = NewClientID()
 		// we try until we get a unique ID
-		for !ClientIDSet.IsClientIDUnique(connectPkt.ClientID) {
+		for !clientIDSet.IsClientIDUnique(connectPkt.ClientID) {
 			connectPkt.ClientID = NewClientID()
 		}
 	}
@@ -31,12 +31,12 @@ func HandleConnect(c *Client, fh *mqttlib.FixedHeader) error {
 		// TODO: send connack with 2 error code
 		return mqttlib.InvalidClientIDError
 	}
-	if !ClientIDSet.IsClientIDUnique(connectPkt.ClientID) {
+	if !clientIDSet.IsClientIDUnique(connectPkt.ClientID) {
 		// Server guarantees id generated will be unique so client sent us used id
 		// TODO: send connack with 2 error code
 		return mqttlib.UniqueClientIDError
 	}
-	ClientIDSet.SaveClientID(connectPkt.ClientID)
+	clientIDSet.SaveClientID(connectPkt.ClientID)
 	c.ID = connectPkt.ClientID
 	c.KeepAlive = connectPkt.KeepAlive
 	if connectPkt.KeepAlive == 0 {
@@ -56,9 +56,9 @@ func HandleConnect(c *Client, fh *mqttlib.FixedHeader) error {
 func HandleDisconnect(c *Client) {
 	// remove connection from subscription table for all of topics that it subscribed to
 	for _, topic := range c.Topics {
-		SubscriberTable.RemoveSubscriber(c, topic)
+		subscriberTable.RemoveSubscriber(c, topic)
 	}
 	// remove ID from ID set
-	ClientIDSet.RemoveClientID(c.ID)
+	clientIDSet.RemoveClientID(c.ID)
 	c.Conn.Close()
 }

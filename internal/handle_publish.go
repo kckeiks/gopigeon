@@ -26,7 +26,7 @@ func HandlePublish(rw io.ReadWriter, fh *mqttlib.FixedHeader) error {
 		return err
 	}
 	ep := mqttlib.EncodePublishPacket(*fh, b)
-	subs, err := SubscriberTable.GetSubscribers(pp.Topic)
+	subs, err := subscriberTable.GetSubscribers(pp.Topic)
 	if err != nil {
 		return err
 	}

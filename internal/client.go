@@ -13,8 +13,8 @@ import (
 const ClientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var defaultKeepAliveTime = 120
-var SubscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
-var ClientIDSet = &idSet{set: make(map[string]struct{})}
+var subscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
+var clientIDSet = &idSet{set: make(map[string]struct{})}
 
 //
 type Client struct {
