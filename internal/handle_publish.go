@@ -7,7 +7,7 @@ import (
 	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
-func HandlePublish(rw io.ReadWriter, fh *mqttlib.FixedHeader) error {
+func handlePublish(rw io.ReadWriter, fh *mqttlib.FixedHeader) error {
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(rw, b)
 	if err != nil {

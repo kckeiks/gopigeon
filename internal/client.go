@@ -29,8 +29,8 @@ type Client struct {
 type MessageManager struct {
 	queued        []*Message
 	inflight      []*Message
-	InflightCount uint
-	InflightMut   sync.Mutex
+	inflightCount uint
+	inflightMut   sync.Mutex
 }
 
 type Message struct {
@@ -120,7 +120,7 @@ func HandleClient(c *Client) error {
 		fmt.Println(mqttlib.ExpectingConnectPktError)
 		return mqttlib.ExpectingConnectPktError
 	}
-	err = HandleConnect(c, fh)
+	err = handleConnect(c, fh)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -134,11 +134,11 @@ func HandleClient(c *Client) error {
 		}
 		switch fh.PktType {
 		case mqttlib.Publish:
-			err = HandlePublish(c.Conn, fh)
+			err = handlePublish(c.Conn, fh)
 		case mqttlib.Subscribe:
-			err = HandleSubscribe(c, fh)
+			err = handleSubscribe(c, fh)
 		case mqttlib.Pingreq:
-			err = HandlePingreq(c, fh)
+			err = handlePingreq(c, fh)
 		case mqttlib.Connect:
 			err = mqttlib.SecondConnectPktError
 		case mqttlib.Disconnect:

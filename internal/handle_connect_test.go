@@ -17,7 +17,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: mqtt connection that has the pkt in its buffer
 	conn := newTestClient(connect[2:])
 	// When: we handle a connnect packet
-	err := HandleConnect(conn, fh)
+	err := handleConnect(conn, fh)
 	// Then: no error
 	if err != nil {
 		t.Fatalf("got an unexpected error")
@@ -43,7 +43,7 @@ func TestHandleConnectPacketInvalidFixedHdrReservedFlag(t *testing.T) {
 	// Given: mqtt connection that has the pkt in its buffer
 	conn := newTestClient(connect[2:])
 	// When: we handle a connnect packet
-	err := HandleConnect(conn, fh)
+	err := handleConnect(conn, fh)
 	// Then: we get an error
 	if err != mqttlib.ConnectFixedHdrReservedFlagError {
 		t.Fatalf("expected ConnectFixedHdrReservedFlagError but instead got %s", err)
@@ -60,7 +60,7 @@ func TestHandleConnectCreateClientID(t *testing.T) {
 	// Given: a connection with the connect
 	conn := newTestClient(connect[2:])
 	// When: we handle the connection
-	HandleConnect(conn, fh)
+	handleConnect(conn, fh)
 	// Then: we change the state of the connection
 	// by assigning it a randomly generated client id
 	if conn.ID == "" {
@@ -80,7 +80,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 	// Given: a connection with the connect pkt
 	conn := newTestClient(connect[2:])
 	// When: we handle the connection
-	err := HandleConnect(conn, fh)
+	err := handleConnect(conn, fh)
 	// Then: there is no error
 	if err != nil {
 		t.Fatalf("unexpected error %s", err)
@@ -103,7 +103,7 @@ func TestHandleConnectInvalidClientID(t *testing.T) {
 	// Given: a connection with the connect pkt
 	conn := newTestClient(connect[2:])
 	// When: we handle the connection
-	err := HandleConnect(conn, fh)
+	err := handleConnect(conn, fh)
 	// Then: there is an error
 	if err != mqttlib.InvalidClientIDError {
 		t.Fatalf("expected InvalidClientIDError but got %s", err.Error())
@@ -126,7 +126,7 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	// Given: a connection with the connect pkt
 	conn := newTestClient(connect[2:])
 	// When: we handle the connection
-	err := HandleConnect(conn, fh)
+	err := handleConnect(conn, fh)
 	// Then: there is an error
 	if err != mqttlib.UniqueClientIDError {
 		t.Fatalf("expected UniqueClientIDError but got %s", err.Error())

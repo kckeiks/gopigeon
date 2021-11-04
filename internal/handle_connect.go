@@ -6,7 +6,7 @@ import (
 	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
-func HandleConnect(c *Client, fh *mqttlib.FixedHeader) error {
+func handleConnect(c *Client, fh *mqttlib.FixedHeader) error {
 	if fh.Flags != 0 {
 		return mqttlib.ConnectFixedHdrReservedFlagError
 	}

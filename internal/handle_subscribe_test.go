@@ -15,9 +15,9 @@ func TestHandleSubscribeSuccess(t *testing.T) {
 	// without header
 	c := newTestClient(sp[2:])
 	// When: we handle the connection
-	err := HandleSubscribe(c, fh)
+	err := handleSubscribe(c, fh)
 	// Then: there is no error so we assume things are ok
 	if err != nil {
-		t.Fatalf("HandleSubscribe failed with err %d", err)
+		t.Fatalf("handleSubscribe failed with err %d", err)
 	}
 }

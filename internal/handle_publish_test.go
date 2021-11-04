@@ -21,10 +21,10 @@ func TestHandlePublish(t *testing.T) {
 	// Given: we can read our Publish packet from a ReadWriter
 	rr := bytes.NewBuffer(pp[2:]) // we omit the header
 	// When: we handle a connnect packet and pass the ReadWriter
-	err := HandlePublish(rr, fh)
+	err := handlePublish(rr, fh)
 	// Then: the ReadWriter will have the Connack pkt representation in bytes
 	if err != nil {
-		t.Fatalf("HandlePublish failed with err %d", err)
+		t.Fatalf("handlePublish failed with err %d", err)
 	}
 	// Then: we published the message to the subscriber
 	msgPublished, err := io.ReadAll(subscriber.Conn)

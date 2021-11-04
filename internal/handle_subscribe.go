@@ -6,7 +6,7 @@ import (
 	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
-func HandleSubscribe(c *Client, fh *mqttlib.FixedHeader) error {
+func handleSubscribe(c *Client, fh *mqttlib.FixedHeader) error {
 	b := make([]byte, fh.RemLength)
 	_, err := io.ReadFull(c.Conn, b)
 	if err != nil {

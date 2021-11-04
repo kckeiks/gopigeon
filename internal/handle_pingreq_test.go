@@ -11,7 +11,7 @@ func TestHandlePingreqSuccess(t *testing.T) {
 	fh, _ := newPingreqReqRequest()
 	conn := newTestClient([]byte{})
 	// When: we send it
-	err := HandlePingreq(conn, fh)
+	err := handlePingreq(conn, fh)
 	// Then: we get a pingres
 	if err != nil {
 		t.Fatalf("unexpected error")
