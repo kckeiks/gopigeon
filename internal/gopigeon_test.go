@@ -53,8 +53,8 @@ func TestHandleConnTwoConnects(t *testing.T) {
 		CleanSession:   1,
 		ClientID:       "",
 	}
-	b.Write(mqttlib.EncodeTestConnectPkt(cp))
-	b.Write(mqttlib.EncodeTestConnectPkt(cp))
+	b.Write(EncodeTestConnectPkt(cp))
+	b.Write(EncodeTestConnectPkt(cp))
 	// When: we handle this connection
 	err := HandleClient(NewTestClient(b.Bytes()))
 	// Then: we get an error because it is a protocol violation
@@ -67,7 +67,7 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	// Given: a connection with a client
 	b := bytes.NewBuffer([]byte{})
 	// Given: a non-connect packet
-	_, pp := mqttlib.NewTestPublishRequest(mqttlib.PublishPacket{
+	_, pp := NewTestPublishRequest(mqttlib.PublishPacket{
 		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})
@@ -102,7 +102,7 @@ func TestKeepAlive(t *testing.T) {
 			// start client
 			conn := testClient()
 			defer conn.Close()
-			_, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
+			_, connect := NewTestConnectRequest(&mqttlib.ConnectPacket{
 				ProtocolName:  "MQTT",
 				ProtocolLevel: 4,
 				CleanSession:  1,

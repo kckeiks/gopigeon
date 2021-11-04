@@ -7,7 +7,7 @@ import (
 
 func TestHandleSubscribeSuccess(t *testing.T) {
 	// Given: a connection/ReaderWriter with which we will be able to read a subscribe package
-	fh, sp := mqttlib.NewTestSubscribeRequest(mqttlib.SubscribePacket{
+	fh, sp := NewTestSubscribeRequest(mqttlib.SubscribePacket{
 		PacketID: 1,
 		Payload:  []mqttlib.SubscribePayload{{TopicFilter: "testtopic", QoS: 0}},
 	})

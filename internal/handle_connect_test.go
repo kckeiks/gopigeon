@@ -8,7 +8,7 @@ import (
 
 func TestHandleConnectPacketSuccess(t *testing.T) {
 	// Given: A connect request for the wire
-	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
+	fh, connect := NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -32,7 +32,7 @@ func TestHandleConnectPacketSuccess(t *testing.T) {
 
 func TestHandleConnectPacketInvalidFixedHdrReservedFlag(t *testing.T) {
 	// Given: A connect request for the wire
-	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
+	fh, connect := NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -51,7 +51,7 @@ func TestHandleConnectPacketInvalidFixedHdrReservedFlag(t *testing.T) {
 
 func TestHandleConnectCreateClientID(t *testing.T) {
 	// Given: encoded connect pkt with client id of size zero
-	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
+	fh, connect := NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -75,7 +75,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 		CleanSession:  1,
 		ClientID:      "testid",
 	}
-	fh, connect := mqttlib.NewTestConnectRequest(decodedConnect)
+	fh, connect := NewTestConnectRequest(decodedConnect)
 	// Given: a connection with the connect pkt
 	conn := NewTestClient(connect[2:])
 	// When: we handle the connection
@@ -93,7 +93,7 @@ func TestHandleConnectValidClientID(t *testing.T) {
 
 func TestHandleConnectInvalidClientID(t *testing.T) {
 	// Given: encoded connect pkt with client id of size zero
-	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
+	fh, connect := NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -116,7 +116,7 @@ func TestHandleConnectWhenClientIDIsNotUnique(t *testing.T) {
 	clientID := "testid"
 	ClientIDSet.set[clientID] = struct{}{}
 	// Given: encoded connect pkt with non-zero length client id
-	fh, connect := mqttlib.NewTestConnectRequest(&mqttlib.ConnectPacket{
+	fh, connect := NewTestConnectRequest(&mqttlib.ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,

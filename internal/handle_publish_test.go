@@ -13,7 +13,7 @@ func TestHandlePublish(t *testing.T) {
 	subscriber := NewTestClient([]byte{})
 	AddTestSubscriber(subscriber, "testtopic")
 	// Given: a Publish packet in bytes
-	fh, pp := mqttlib.NewTestPublishRequest(mqttlib.PublishPacket{
+	fh, pp := NewTestPublishRequest(mqttlib.PublishPacket{
 		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})
