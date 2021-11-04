@@ -134,7 +134,7 @@ func HandleClient(c *Client) error {
 		}
 		switch fh.PktType {
 		case mqttlib.Publish:
-			err = handlePublish(c.Conn, fh)
+			err = handlePublish(c, fh)
 		case mqttlib.Subscribe:
 			err = handleSubscribe(c, fh)
 		case mqttlib.Pingreq:

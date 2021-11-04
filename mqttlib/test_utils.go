@@ -59,6 +59,7 @@ func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {
 }
 
 func newTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
+	// TODO: add support for Flags
 	encodedTopic := EncodeStr(pp.Topic)
 	// Note: When QoS is 0 there is no packet id
 	remLen := uint32(len(encodedTopic) + len(pp.Payload))

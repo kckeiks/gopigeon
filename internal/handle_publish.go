@@ -7,25 +7,22 @@ import (
 	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
-func handlePublish(rw io.ReadWriter, fh *mqttlib.FixedHeader) error {
+func handlePublish(c *Client, fh *mqttlib.FixedHeader) error {
 	b := make([]byte, fh.RemLength)
-	_, err := io.ReadFull(rw, b)
+	_, err := io.ReadFull(c.Conn, b)
 	if err != nil {
 		return err
 	}
-	var hasPktID bool
-	qos := (fh.Flags & 6) >> 1
-	if qos == 3 {
-		return mqttlib.InvalidQoSValError
-	}
-	if qos > 0 {
-		hasPktID = true
-	}
-	pp, err := mqttlib.DecodePublishPacket(b, hasPktID)
+	pp, err := mqttlib.DecodePublishPacket(b, fh)
 	if err != nil {
 		return err
 	}
-	ep := mqttlib.EncodePublishPacket(*fh, b)
+	publish(b, pp)
+	return nil
+}
+
+func publish(b []byte, pp *mqttlib.PublishPacket) error {
+	ep := mqttlib.EncodePublishPacket(b)
 	subs, err := subscriberTable.GetSubscribers(pp.Topic)
 	if err != nil {
 		return err

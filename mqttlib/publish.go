@@ -8,15 +8,22 @@ import (
 )
 
 type PublishPacket struct {
+	Dup      byte
+	QoS      byte
+	Retain   byte
 	Topic    string
 	PacketID uint16
 	Payload  []byte
 }
 
-func DecodePublishPacket(b []byte, hasPktID bool) (*PublishPacket, error) {
+func DecodePublishPacket(b []byte, fh *FixedHeader) (*PublishPacket, error) {
 	p := &PublishPacket{}
 	pktLen := len(b)
 	buf := bytes.NewBuffer(b)
+	// get Flags
+	p.Dup = (fh.Flags & 8) >> 3
+	p.QoS = (fh.Flags & 6) >> 1
+	p.Retain = fh.Flags & 1
 	// get topic
 	topic, err := ReadEncodedStr(buf)
 	if err != nil {
@@ -25,7 +32,10 @@ func DecodePublishPacket(b []byte, hasPktID bool) (*PublishPacket, error) {
 	p.Topic = topic
 	// get pkt ID
 	var pktIdBuf []byte
-	if hasPktID {
+	if p.QoS == 3 {
+		return nil, InvalidQoSValError
+	}
+	if p.QoS > 0 {
 		_, err := io.ReadFull(buf, pktIdBuf)
 		if err != nil {
 			return nil, err
@@ -43,11 +53,10 @@ func DecodePublishPacket(b []byte, hasPktID bool) (*PublishPacket, error) {
 	return p, nil
 }
 
-func EncodePublishPacket(fh FixedHeader, p []byte) []byte {
-	var pktType byte = Publish << 4
-	fixedHeader := []byte{pktType}
-	fixedHeader = append(fixedHeader, EncodeRemLength(fh.RemLength)...)
-	return append(fixedHeader, p...)
+func EncodePublishPacket(b []byte) []byte {
+	fixedHeader := []byte{Publish << 4}
+	fixedHeader = append(fixedHeader, EncodeRemLength(uint32(len(b)))...)
+	return append(fixedHeader, b...)
 }
 
 func (p *PublishPacket) String() string {

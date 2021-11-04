@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bytes"
 	"io"
 	"reflect"
 	"testing"
@@ -19,9 +18,9 @@ func TestHandlePublish(t *testing.T) {
 		Payload: []byte{0, 1},
 	})
 	// Given: we can read our Publish packet from a ReadWriter
-	rr := bytes.NewBuffer(pp[2:]) // we omit the header
+	c := newTestClient(pp[2:])
 	// When: we handle a connnect packet and pass the ReadWriter
-	err := handlePublish(rr, fh)
+	err := handlePublish(c, fh)
 	// Then: the ReadWriter will have the Connack pkt representation in bytes
 	if err != nil {
 		t.Fatalf("handlePublish failed with err %d", err)
