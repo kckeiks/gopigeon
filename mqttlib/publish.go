@@ -1,7 +1,6 @@
 package mqttlib
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -16,16 +15,14 @@ type PublishPacket struct {
 	Payload  []byte
 }
 
-func DecodePublishPacket(b []byte, fh *FixedHeader) (*PublishPacket, error) {
+func DecodePublishPacket(r io.Reader, fh *FixedHeader) (*PublishPacket, error) {
 	p := &PublishPacket{}
-	pktLen := len(b)
-	buf := bytes.NewBuffer(b)
 	// get Flags
 	p.Dup = (fh.Flags & 8) >> 3
 	p.QoS = (fh.Flags & 6) >> 1
 	p.Retain = fh.Flags & 1
 	// get topic
-	topic, err := ReadEncodedStr(buf)
+	topic, err := ReadEncodedStr(r)
 	if err != nil {
 		return nil, err
 	}
@@ -36,16 +33,16 @@ func DecodePublishPacket(b []byte, fh *FixedHeader) (*PublishPacket, error) {
 		return nil, InvalidQoSValError
 	}
 	if p.QoS > 0 {
-		_, err := io.ReadFull(buf, pktIdBuf)
+		_, err := io.ReadFull(r, pktIdBuf)
 		if err != nil {
 			return nil, err
 		}
 		p.PacketID = binary.BigEndian.Uint16(pktIdBuf)
 	}
 	// get payload
-	payloadLen := pktLen - (StrlenLen + len(topic) + len(pktIdBuf))
+	payloadLen := fh.RemLength - uint32(StrlenLen+len(topic)+len(pktIdBuf))
 	payload := make([]byte, payloadLen)
-	_, err = io.ReadFull(buf, payload)
+	_, err = io.ReadFull(r, payload)
 	if err != nil {
 		return nil, err
 	}
