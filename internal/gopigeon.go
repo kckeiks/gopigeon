@@ -2,9 +2,10 @@ package internal
 
 import (
 	"fmt"
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"net"
 	"os"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func ListenAndServe() {

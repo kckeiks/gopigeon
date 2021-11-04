@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"io"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func HandleConnect(c *Client, fh *mqttlib.FixedHeader) error {
@@ -61,4 +62,3 @@ func HandleDisconnect(c *Client) {
 	ClientIDSet.RemoveClientID(c.ID)
 	c.Conn.Close()
 }
-

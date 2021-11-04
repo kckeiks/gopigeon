@@ -2,18 +2,19 @@ package internal
 
 import (
 	"bytes"
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"io"
 	"reflect"
 	"testing"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func TestHandlePublish(t *testing.T) {
 	// Given: we have a topic with a subscriber(s)
-	subscriber := NewTestClient([]byte{})
-	AddTestSubscriber(subscriber, "testtopic")
+	subscriber := newTestClient([]byte{})
+	addTestSubscriber(subscriber, "testtopic")
 	// Given: a Publish packet in bytes
-	fh, pp := NewTestPublishRequest(mqttlib.PublishPacket{
+	fh, pp := newTestPublishRequest(mqttlib.PublishPacket{
 		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})

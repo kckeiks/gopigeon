@@ -12,7 +12,7 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 		ProtocolLevel: 4,
 		CleanSession:  1,
 	}
-	_, cp := NewTestConnectRequest(expectedResult)
+	_, cp := newTestConnectRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodeConnectPacket(cp[2:])
@@ -28,7 +28,7 @@ func TestDecodeConnectPacketSuccess(t *testing.T) {
 func TestDecodeConnectPacketInvalidReservedFlag(t *testing.T) {
 	// Given: a stream/slice of bytes that represents a connect pkt
 	// Given: connect reserved flag bit is not zero
-	_, cp := NewTestConnectRequest(&ConnectPacket{
+	_, cp := newTestConnectRequest(&ConnectPacket{
 		ProtocolName:  "MQTT",
 		ProtocolLevel: 4,
 		CleanSession:  1,
@@ -50,7 +50,7 @@ func TestDecodeConnectPacketInvalidProtocolName(t *testing.T) {
 		ProtocolLevel: 4,
 		CleanSession:  1,
 	}
-	_, cp := NewTestConnectRequest(expectedResult)
+	_, cp := newTestConnectRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
@@ -70,7 +70,7 @@ func TestDecodeConnectPacketInvalidProtocolLevel(t *testing.T) {
 		ProtocolLevel: 8, // bad
 		CleanSession:  1,
 	}
-	_, cp := NewTestConnectRequest(expectedResult)
+	_, cp := newTestConnectRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	_, err := DecodeConnectPacket(cp[2:])
@@ -93,9 +93,8 @@ func TestEncodeConnackPacketSuccess(t *testing.T) {
 	result := EncodeConnackPacket(cp)
 	// Then: we get a stream/slice of bytes that represent the pkt
 	// expectedResult containing AckFlags: 0 and RtrnCode: 0
-	expectedResult := NewTestConnackRequest(cp.AckFlags, cp.RtrnCode)
+	expectedResult := newTestConnackRequest(cp.AckFlags, cp.RtrnCode)
 	if !reflect.DeepEqual(result, expectedResult) {
 		t.Fatalf("Got encoded ConnackPacket %d but expected %d,", result, expectedResult)
 	}
 }
-

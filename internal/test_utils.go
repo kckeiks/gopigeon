@@ -3,9 +3,10 @@ package internal
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"net"
 	"time"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 // implements net.Conn interface
@@ -27,14 +28,14 @@ func (tc *testConn) Write(b []byte) (int, error) {
 	return tc.b.Write(b)
 }
 
-func (*testConn) Close() error { return nil }
-func (*testConn) LocalAddr() net.Addr { return nil }
-func (*testConn) RemoteAddr() net.Addr { return nil }
-func (*testConn) SetDeadline(t time.Time) error { return nil }
-func (*testConn) SetReadDeadline(t time.Time) error { return nil }
+func (*testConn) Close() error                       { return nil }
+func (*testConn) LocalAddr() net.Addr                { return nil }
+func (*testConn) RemoteAddr() net.Addr               { return nil }
+func (*testConn) SetDeadline(t time.Time) error      { return nil }
+func (*testConn) SetReadDeadline(t time.Time) error  { return nil }
 func (*testConn) SetWriteDeadline(t time.Time) error { return nil }
 
-func NewTestClient(data []byte) *Client {
+func newTestClient(data []byte) *Client {
 	c := &testConn{}
 	c.Write(data)
 	return &Client{
@@ -42,32 +43,32 @@ func NewTestClient(data []byte) *Client {
 	}
 }
 
-func NewPingreqReqRequest() (*mqttlib.FixedHeader, []byte) {
+func newPingreqReqRequest() (*mqttlib.FixedHeader, []byte) {
 	return &mqttlib.FixedHeader{PktType: mqttlib.Pingreq << 4}, []byte{mqttlib.Pingreq << 4, 0}
 }
 
-func NewEncodedPingres() []byte {
+func newEncodedPingres() []byte {
 	return []byte{mqttlib.Pingres << 4, 0}
 }
 
-func NewEncodedDisconnect() []byte {
+func newEncodedDisconnect() []byte {
 	return []byte{mqttlib.Disconnect << 4, 0}
 }
 
-func NewTestConnackRequest(ackFlags, rtrnCode byte) []byte {
+func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {
 	pktType := byte(mqttlib.Connack << 4)
 	remLength := byte(2)
 	ackFlags = ackFlags & 1
 	return []byte{pktType, remLength, ackFlags, rtrnCode}
 }
 
-func AddTestSubscriber(c *Client, topic string) {
+func addTestSubscriber(c *Client, topic string) {
 	SubscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
 	SubscriberTable.Subscribers[topic] = []*Client{c}
 	c.Topics = append(c.Topics, topic)
 }
 
-func NewTestPublishRequest(pp mqttlib.PublishPacket) (*mqttlib.FixedHeader, []byte) {
+func newTestPublishRequest(pp mqttlib.PublishPacket) (*mqttlib.FixedHeader, []byte) {
 	encodedTopic := mqttlib.EncodeStr(pp.Topic)
 	// Note: When QoS is 0 there is no packet id
 	remLen := uint32(len(encodedTopic) + len(pp.Payload))
@@ -79,7 +80,7 @@ func NewTestPublishRequest(pp mqttlib.PublishPacket) (*mqttlib.FixedHeader, []by
 	return &mqttlib.FixedHeader{PktType: mqttlib.Publish, RemLength: remLen}, publish
 }
 
-func NewTestSubscribeRequest(sp mqttlib.SubscribePacket) (*mqttlib.FixedHeader, []byte) {
+func newTestSubscribeRequest(sp mqttlib.SubscribePacket) (*mqttlib.FixedHeader, []byte) {
 	// Packet data
 	packetIdBuf := make([]byte, mqttlib.PacketIDLen)
 	binary.BigEndian.PutUint16(packetIdBuf, sp.PacketID)
@@ -104,13 +105,13 @@ func NewTestSubscribeRequest(sp mqttlib.SubscribePacket) (*mqttlib.FixedHeader, 
 	return &mqttlib.FixedHeader{PktType: mqttlib.Subscribe, RemLength: remLen}, subscribe
 }
 
-func NewTestConnectRequest(cp *mqttlib.ConnectPacket) (*mqttlib.FixedHeader, []byte) {
-	connectInBytes := EncodeTestConnectPkt(cp)
+func newTestConnectRequest(cp *mqttlib.ConnectPacket) (*mqttlib.FixedHeader, []byte) {
+	connectInBytes := encodeTestConnectPkt(cp)
 	// TODO: encode flags
 	return &mqttlib.FixedHeader{PktType: mqttlib.Connect, RemLength: uint32(len(connectInBytes[2:]))}, connectInBytes
 }
 
-func EncodeTestConnectPkt(cp *mqttlib.ConnectPacket) []byte {
+func encodeTestConnectPkt(cp *mqttlib.ConnectPacket) []byte {
 	// protocol name
 	pn := []byte(cp.ProtocolName)
 	var pnLen = [2]byte{}
@@ -136,8 +137,8 @@ func EncodeTestConnectPkt(cp *mqttlib.ConnectPacket) []byte {
 	lenOfPkt := uint32(4 + 2 + len(pn) + len(payload))
 	connect := []byte{mqttlib.Connect << 4}                         // MS nibble has type and LS nibble is reserved e.g. 0
 	connect = append(connect, mqttlib.EncodeRemLength(lenOfPkt)...) // rem length
-	connect = append(connect, pnLen[:]...)                  // add protocol name
-	connect = append(connect, pn...)                        // add protocol name
+	connect = append(connect, pnLen[:]...)                          // add protocol name
+	connect = append(connect, pn...)                                // add protocol name
 	connect = append(connect, cp.ProtocolLevel)
 	connect = append(connect, 2)               // TODO: connect flags
 	connect = append(connect, keepAliveBuf...) // TODO: Keep Alive

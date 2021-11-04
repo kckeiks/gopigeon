@@ -2,8 +2,9 @@ package internal
 
 import (
 	"fmt"
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"io"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func HandlePublish(rw io.ReadWriter, fh *mqttlib.FixedHeader) error {
@@ -38,4 +39,3 @@ func HandlePublish(rw io.ReadWriter, fh *mqttlib.FixedHeader) error {
 	}
 	return nil
 }
-

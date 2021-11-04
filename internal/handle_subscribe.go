@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"io"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func HandleSubscribe(c *Client, fh *mqttlib.FixedHeader) error {
@@ -23,4 +24,3 @@ func HandleSubscribe(c *Client, fh *mqttlib.FixedHeader) error {
 	}
 	return nil
 }
-

@@ -2,7 +2,7 @@ package mqttlib
 
 import "encoding/binary"
 
-func NewTestEncodedFixedHeader(fh FixedHeader) []byte {
+func newTestEncodedFixedHeader(fh FixedHeader) []byte {
 	remLen := EncodeRemLength(fh.RemLength)
 	pktType := fh.PktType << 4
 	pktType = pktType | fh.Flags
@@ -10,13 +10,13 @@ func NewTestEncodedFixedHeader(fh FixedHeader) []byte {
 	return append(encodedFh, remLen...)
 }
 
-func NewTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
-	connectInBytes := EncodeTestConnectPkt(cp)
+func newTestConnectRequest(cp *ConnectPacket) (*FixedHeader, []byte) {
+	connectInBytes := encodeTestConnectPkt(cp)
 	// TODO: encode flags
 	return &FixedHeader{PktType: Connect, RemLength: uint32(len(connectInBytes[2:]))}, connectInBytes
 }
 
-func EncodeTestConnectPkt(cp *ConnectPacket) []byte {
+func encodeTestConnectPkt(cp *ConnectPacket) []byte {
 	// protocol name
 	pn := []byte(cp.ProtocolName)
 	var pnLen = [2]byte{}
@@ -51,14 +51,14 @@ func EncodeTestConnectPkt(cp *ConnectPacket) []byte {
 	return connect
 }
 
-func NewTestConnackRequest(ackFlags, rtrnCode byte) []byte {
+func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {
 	pktType := byte(Connack << 4)
 	remLength := byte(2)
 	ackFlags = ackFlags & 1
 	return []byte{pktType, remLength, ackFlags, rtrnCode}
 }
 
-func NewTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
+func newTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
 	encodedTopic := EncodeStr(pp.Topic)
 	// Note: When QoS is 0 there is no packet id
 	remLen := uint32(len(encodedTopic) + len(pp.Payload))
@@ -70,7 +70,7 @@ func NewTestPublishRequest(pp PublishPacket) (*FixedHeader, []byte) {
 	return &FixedHeader{PktType: Publish, RemLength: remLen}, publish
 }
 
-func NewTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
+func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	// Packet data
 	packetIdBuf := make([]byte, PacketIDLen)
 	binary.BigEndian.PutUint16(packetIdBuf, sp.PacketID)
@@ -94,4 +94,3 @@ func NewTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 	}
 	return &FixedHeader{PktType: Subscribe, RemLength: remLen}, subscribe
 }
-

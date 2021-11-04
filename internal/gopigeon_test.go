@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"net"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func init() {
@@ -53,10 +54,10 @@ func TestHandleConnTwoConnects(t *testing.T) {
 		CleanSession:   1,
 		ClientID:       "",
 	}
-	b.Write(EncodeTestConnectPkt(cp))
-	b.Write(EncodeTestConnectPkt(cp))
+	b.Write(encodeTestConnectPkt(cp))
+	b.Write(encodeTestConnectPkt(cp))
 	// When: we handle this connection
-	err := HandleClient(NewTestClient(b.Bytes()))
+	err := HandleClient(newTestClient(b.Bytes()))
 	// Then: we get an error because it is a protocol violation
 	if err != mqttlib.SecondConnectPktError {
 		t.Fatalf("Expected SecondConnectPktError but got %d.", err)
@@ -67,13 +68,13 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 	// Given: a connection with a client
 	b := bytes.NewBuffer([]byte{})
 	// Given: a non-connect packet
-	_, pp := NewTestPublishRequest(mqttlib.PublishPacket{
+	_, pp := newTestPublishRequest(mqttlib.PublishPacket{
 		Topic:   "testtopic",
 		Payload: []byte{0, 1},
 	})
 	b.Write(pp)
 	// When: we send this packet as the first one
-	err := HandleClient(NewTestClient(b.Bytes()))
+	err := HandleClient(newTestClient(b.Bytes()))
 	// Then: we get an error because it is a protocol violation
 	if err != mqttlib.ExpectingConnectPktError {
 		t.Fatalf("Expected ExpectingConnectPktError but got %d.", err)
@@ -83,7 +84,7 @@ func TestHandleConnFirstPktIsNotConnect(t *testing.T) {
 // These tests tend to be a bit flaky if the difference is small
 // between keep alive and idle time
 func TestKeepAlive(t *testing.T) {
-	disconnet := NewEncodedDisconnect()
+	disconnet := newEncodedDisconnect()
 	cases := map[string]struct {
 		keepAlive int
 		idleTime  int
@@ -102,7 +103,7 @@ func TestKeepAlive(t *testing.T) {
 			// start client
 			conn := testClient()
 			defer conn.Close()
-			_, connect := NewTestConnectRequest(&mqttlib.ConnectPacket{
+			_, connect := newTestConnectRequest(&mqttlib.ConnectPacket{
 				ProtocolName:  "MQTT",
 				ProtocolLevel: 4,
 				CleanSession:  1,

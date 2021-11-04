@@ -1,12 +1,13 @@
 package internal
 
 import (
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"math/rand"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 const ClientIDletters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

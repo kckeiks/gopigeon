@@ -11,7 +11,7 @@ func TestDecodePublishPacket(t *testing.T) {
 		Topic:   "testtopic",
 		Payload: []byte{116, 101, 115, 116, 109, 115, 103},
 	}
-	_, pp := NewTestPublishRequest(expectedResult)
+	_, pp := newTestPublishRequest(expectedResult)
 	// When: we try to decoded it
 	// we pass the packet without the fixed header
 	result, err := DecodePublishPacket(pp[2:], false)
@@ -23,4 +23,3 @@ func TestDecodePublishPacket(t *testing.T) {
 		t.Fatalf("Got PublishPacket %+v but expected %+v,", result, &expectedResult)
 	}
 }
-

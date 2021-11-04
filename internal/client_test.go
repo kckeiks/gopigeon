@@ -1,16 +1,17 @@
 package internal
 
 import (
-	"github.com/kckeiks/gopigeon/mqttlib"
 	"reflect"
 	"testing"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func TestAddSubscriberSuccess(t *testing.T) {
 	// Given: we have a table of SubscriberTable
 	SubscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
 	// Given: a subscriber
-	sub := NewTestClient([]byte{})
+	sub := newTestClient([]byte{})
 	// When: we add a subscriber given a topic
 	SubscriberTable.AddSubscriber(sub, "testtopic")
 	// Then: we have that subscriber added to the table
@@ -22,8 +23,8 @@ func TestAddSubscriberSuccess(t *testing.T) {
 func TestGetSubscribersSuccess(t *testing.T) {
 	// Given: we have to table of subscriber
 	// Given: an existing topic
-	sub := NewTestClient([]byte{})
-	AddTestSubscriber(sub, "testtopic")
+	sub := newTestClient([]byte{})
+	addTestSubscriber(sub, "testtopic")
 	// When: we try to find the subs for the topic in the table
 	result, err := SubscriberTable.GetSubscribers("testtopic")
 	// Then: We get the right list of subs
@@ -37,8 +38,8 @@ func TestGetSubscribersSuccess(t *testing.T) {
 
 func TestGetSubscribersFail(t *testing.T) {
 	// Given: we have to table of subscriber
-	sub := NewTestClient([]byte{})
-	AddTestSubscriber(sub, "testtopic")
+	sub := newTestClient([]byte{})
+	addTestSubscriber(sub, "testtopic")
 	// Given: a non existing topic
 	unknownTopic := "foo"
 	// When: we try to find the subs for the topic in the table

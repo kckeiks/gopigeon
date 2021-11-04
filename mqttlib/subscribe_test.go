@@ -12,7 +12,7 @@ func TestDecodeSubscribePacketSuccess(t *testing.T) {
 		PacketID: 1,
 		Payload:  []SubscribePayload{{TopicFilter: "testtopic", QoS: 0}},
 	}
-	_, sp := NewTestSubscribeRequest(expectedResult)
+	_, sp := newTestSubscribeRequest(expectedResult)
 	// When: we decoded it
 	result, err := DecodeSubscribePacket(sp[2:])
 	// Then: we get a SubscribePacket struct

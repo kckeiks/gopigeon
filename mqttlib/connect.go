@@ -11,20 +11,20 @@ const (
 )
 
 type ConnectPacket struct {
-	ProtocolName  string
-	ProtocolLevel byte
+	ProtocolName   string
+	ProtocolLevel  byte
 	UserNameFlag   byte
 	PsswdFlag      byte
 	WillRetainFlag byte
-	WillQoSFlag  byte
-	WillFlag     byte
-	CleanSession byte
-	KeepAlive int
-	ClientID  string
-	WillTopic string
-	WillMsg  []byte
-	Username string
-	Password []byte
+	WillQoSFlag    byte
+	WillFlag       byte
+	CleanSession   byte
+	KeepAlive      int
+	ClientID       string
+	WillTopic      string
+	WillMsg        []byte
+	Username       string
+	Password       []byte
 }
 
 type ConnackPacket struct {
@@ -104,4 +104,3 @@ func EncodeConnackPacket(p ConnackPacket) []byte {
 	fixedHeader := []byte{pktType, remLength}
 	return append(fixedHeader, cp...)
 }
-
