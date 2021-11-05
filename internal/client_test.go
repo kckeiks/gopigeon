@@ -1,52 +1,54 @@
-package gopigeon
+package internal
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/kckeiks/gopigeon/mqttlib"
 )
 
 func TestAddSubscriberSuccess(t *testing.T) {
-	// Given: we have a table of subscribers
-	subscribers = &Subscribers{subscribers: make(map[string][]*MQTTConn)}
+	// Given: we have a table of subscriberTable
+	subscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
 	// Given: a subscriber
-	sub := newTestMQTTConn([]byte{})
+	sub := newTestClient([]byte{})
 	// When: we add a subscriber given a topic
-	subscribers.addSubscriber(sub, "testtopic")
+	subscriberTable.AddSubscriber(sub, "testtopic")
 	// Then: we have that subscriber added to the table
-	if !reflect.DeepEqual(subscribers.subscribers["testtopic"], []*MQTTConn{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", subscribers.subscribers["testtopic"], []*MQTTConn{sub})
+	if !reflect.DeepEqual(subscriberTable.Subscribers["testtopic"], []*Client{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", subscriberTable.Subscribers["testtopic"], []*Client{sub})
 	}
 }
 
 func TestGetSubscribersSuccess(t *testing.T) {
 	// Given: we have to table of subscriber
 	// Given: an existing topic
-	sub := newTestMQTTConn([]byte{})
+	sub := newTestClient([]byte{})
 	addTestSubscriber(sub, "testtopic")
 	// When: we try to find the subs for the topic in the table
-	result, err := subscribers.getSubscribers("testtopic")
+	result, err := subscriberTable.GetSubscribers("testtopic")
 	// Then: We get the right list of subs
 	if err != nil {
-		t.Fatalf("getSubscribers returned an unexpected error %+v", err)
+		t.Fatalf("GetSubscribers returned an unexpected error %+v", err)
 	}
-	if !reflect.DeepEqual(result, []*MQTTConn{sub}) {
-		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", result, []*MQTTConn{sub})
+	if !reflect.DeepEqual(result, []*Client{sub}) {
+		t.Fatalf("Subscribers, for testtopic, has %+v but expected %+v.", result, []*Client{sub})
 	}
 }
 
 func TestGetSubscribersFail(t *testing.T) {
 	// Given: we have to table of subscriber
-	sub := newTestMQTTConn([]byte{})
+	sub := newTestClient([]byte{})
 	addTestSubscriber(sub, "testtopic")
 	// Given: a non existing topic
 	unknownTopic := "foo"
 	// When: we try to find the subs for the topic in the table
-	_, err := subscribers.getSubscribers(unknownTopic)
+	_, err := subscriberTable.GetSubscribers(unknownTopic)
 	// Then: We get an error
-	if err != UnknownTopicError {
-		t.Fatalf("getSubscribers did not returned an error.")
+	if err != mqttlib.UnknownTopicError {
+		t.Fatalf("GetSubscribers did not returned an error.")
 	}
-	_, ok := subscribers.subscribers[unknownTopic]
+	_, ok := subscriberTable.Subscribers[unknownTopic]
 	if ok {
 		t.Fatalf("Expected that there were no records for the unknown topic.")
 	}
@@ -83,7 +85,7 @@ func TestWhenClientIDIsUnique(t *testing.T) {
 	// Given: our client ID is not in the set
 	clientID := "unique"
 	// When: client ID
-	if !clientIDSet.isClientIDUnique(clientID) {
+	if !clientIDSet.IsClientIDUnique(clientID) {
 		t.Fatalf("client id should be unique")
 	}
 }
@@ -95,7 +97,7 @@ func TestWhenClientIDIsNotUnique(t *testing.T) {
 	clientID := "notunique"
 	clientIDSet.set[clientID] = struct{}{}
 	// When: client ID
-	if clientIDSet.isClientIDUnique(clientID) {
+	if clientIDSet.IsClientIDUnique(clientID) {
 		t.Fatalf("client id should not be unique")
 	}
 }

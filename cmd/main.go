@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/kckeiks/gopigeon"
+	"github.com/kckeiks/gopigeon/internal"
 )
 
 func main() {
-	gopigeon.ListenAndServe()
+	internal.ListenAndServe()
 }
