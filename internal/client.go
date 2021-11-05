@@ -19,11 +19,17 @@ var clientIDSet = &idSet{set: make(map[string]struct{})}
 
 //
 type Client struct {
-	Conn       net.Conn
-	ID         string
-	Topics     []string // might be able to remove this
+	Conn net.Conn
+	ID   string
+	Subs []*Subscription // might be able to remove this
+	//Subs  []Subscription
 	KeepAlive  int
 	MsgManager *MessageManager
+}
+
+type Subscription struct {
+	QoS   uint
+	Topic string
 }
 
 type MessageManager struct {
@@ -46,6 +52,23 @@ type Subscribers struct {
 type idSet struct {
 	mu  sync.Mutex
 	set map[string]struct{}
+}
+
+func (c *Client) findSubscription(topic string) *Subscription {
+	for _, s := range c.Subs {
+		if s.Topic == topic {
+			return s
+		}
+	}
+	return nil
+}
+
+func writeMsg(c *Client, b []byte) error {
+	_, err := c.Conn.Write(b)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *MessageManager) enqueue(msg *Message) {

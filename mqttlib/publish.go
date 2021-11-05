@@ -7,9 +7,9 @@ import (
 )
 
 type PublishPacket struct {
-	Dup      byte
-	QoS      byte
-	Retain   byte
+	Dup      bool
+	QoS      uint
+	Retain   bool
 	Topic    string
 	PacketID uint16
 	Payload  []byte
@@ -18,9 +18,9 @@ type PublishPacket struct {
 func DecodePublishPacket(r io.Reader, fh *FixedHeader) (*PublishPacket, error) {
 	p := &PublishPacket{}
 	// get Flags
-	p.Dup = (fh.Flags & 8) >> 3
-	p.QoS = (fh.Flags & 6) >> 1
-	p.Retain = fh.Flags & 1
+	p.Dup = ((fh.Flags & 8) >> 3) == 1
+	p.QoS = uint((fh.Flags & 6) >> 1)
+	p.Retain = (fh.Flags & 1) == 1
 	// get topic
 	topic, err := ReadEncodedStr(r)
 	if err != nil {
@@ -51,9 +51,18 @@ func DecodePublishPacket(r io.Reader, fh *FixedHeader) (*PublishPacket, error) {
 }
 
 func EncodePublishPacket(p *PublishPacket) []byte {
-	flags := (p.Dup << 3) & 8
-	flags |= (p.QoS << 1) & 6
-	flags |= p.Retain & 1
+	var flags byte
+	var dup byte = 0
+	var retain byte = 0
+	if p.Dup {
+		dup = (1 << 3) & 8
+	}
+	if p.Retain {
+		retain = 1
+	}
+	flags |= dup
+	flags |= byte((p.QoS << 1) & 6)
+	flags |= retain
 	fixedHeader := []byte{(Publish << 4) | flags}
 	topic := EncodeStr(p.Topic)
 	var pktID []byte

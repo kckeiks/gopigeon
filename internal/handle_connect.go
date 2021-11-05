@@ -55,8 +55,8 @@ func handleConnect(c *Client, fh *mqttlib.FixedHeader) error {
 
 func HandleDisconnect(c *Client) {
 	// remove connection from subscription table for all of topics that it subscribed to
-	for _, topic := range c.Topics {
-		subscriberTable.RemoveSubscriber(c, topic)
+	for _, sub := range c.Subs {
+		subscriberTable.RemoveSubscriber(c, sub.Topic)
 	}
 	// remove ID from ID set
 	clientIDSet.RemoveClientID(c.ID)
