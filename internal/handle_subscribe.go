@@ -15,7 +15,7 @@ func handleSubscribe(c *Client, fh *mqttlib.FixedHeader) error {
 	sp, err := mqttlib.DecodeSubscribePacket(b)
 	for _, payload := range sp.Payload {
 		subscriberTable.AddSubscriber(c, payload.TopicFilter)
-		c.Subs = append(c.Subs, &Subscription{Topic: payload.TopicFilter})
+		c.Subs = append(c.Subs, &Subscription{Topic: payload.TopicFilter, QoS: payload.QoS})
 	}
 	esp := mqttlib.EncodeSubackPacket(sp.PacketID)
 	_, err = c.Conn.Write(esp)

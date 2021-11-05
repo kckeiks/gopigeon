@@ -8,7 +8,7 @@ import (
 
 type SubscribePayload struct {
 	TopicFilter string
-	QoS         byte
+	QoS         uint
 }
 
 type SubscribePacket struct {
@@ -33,7 +33,7 @@ func DecodeSubscribePacket(b []byte) (*SubscribePacket, error) {
 		if err != nil {
 			return nil, err
 		}
-		subPayload := SubscribePayload{TopicFilter: filter, QoS: qos}
+		subPayload := SubscribePayload{TopicFilter: filter, QoS: uint(qos)}
 		payload = append(payload, subPayload)
 	}
 	return &SubscribePacket{PacketID: binary.BigEndian.Uint16(packetId), Payload: payload}, nil
