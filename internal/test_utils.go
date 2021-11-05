@@ -85,16 +85,14 @@ func newTestSubscribeRequest(sp mqttlib.SubscribePacket) (*mqttlib.FixedHeader, 
 		payloadLen += 2 + len(p.TopicFilter) + 1
 	}
 	// header data
-	pktType := mqttlib.Subscribe << 4
-	pktType = pktType | 2 //reserved 0010
 	remLen := uint32(len(packetIdBuf) + payloadLen)
 	// build packet in bytes
-	subscribe := []byte{byte(pktType)}
+	subscribe := []byte{(mqttlib.Subscribe << 4) | 2}
 	subscribe = append(subscribe, mqttlib.EncodeRemLength(remLen)...)
 	subscribe = append(subscribe, packetIdBuf...)
 	for _, p := range sp.Payload {
 		subscribe = append(subscribe, mqttlib.EncodeStr(p.TopicFilter)...)
-		subscribe = append(subscribe, p.QoS)
+		subscribe = append(subscribe, byte(p.QoS&3))
 	}
 	return &mqttlib.FixedHeader{PktType: mqttlib.Subscribe, RemLength: remLen}, subscribe
 }

@@ -82,16 +82,14 @@ func newTestSubscribeRequest(sp SubscribePacket) (*FixedHeader, []byte) {
 		payloadLen += 2 + len(p.TopicFilter) + 1
 	}
 	// header data
-	pktType := Subscribe << 4
-	pktType = pktType | 2 //reserved 0010
 	remLen := uint32(len(packetIdBuf) + payloadLen)
 	// build packet in bytes
-	subscribe := []byte{byte(pktType)}
+	subscribe := []byte{(Subscribe << 4) | 2}
 	subscribe = append(subscribe, EncodeRemLength(remLen)...)
 	subscribe = append(subscribe, packetIdBuf...)
 	for _, p := range sp.Payload {
 		subscribe = append(subscribe, EncodeStr(p.TopicFilter)...)
-		subscribe = append(subscribe, p.QoS)
+		subscribe = append(subscribe, byte(p.QoS&3))
 	}
 	return &FixedHeader{PktType: Subscribe, RemLength: remLen}, subscribe
 }

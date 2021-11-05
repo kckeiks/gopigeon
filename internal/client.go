@@ -54,6 +54,23 @@ type idSet struct {
 	set map[string]struct{}
 }
 
+func (c *Client) findSubscription(topic string) *Subscription {
+	for _, s := range c.Subs {
+		if s.Topic == topic {
+			return s
+		}
+	}
+	return nil
+}
+
+func writeMsg(c *Client, b []byte) error {
+	_, err := c.Conn.Write(b)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *MessageManager) enqueue(msg *Message) {
 	m.queued = append(m.queued, msg)
 }
