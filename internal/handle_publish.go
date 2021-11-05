@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -10,7 +11,7 @@ import (
 
 func handlePublish(c *Client, fh *mqttlib.FixedHeader) error {
 	b := make([]byte, fh.RemLength)
-	_, err := io.ReadFull(c.Conn, b)
+	_, err := io.ReadFull(bufio.NewReader(c.Conn), b)
 	if err != nil {
 		return err
 	}

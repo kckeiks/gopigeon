@@ -59,7 +59,7 @@ func newTestConnackRequest(ackFlags, rtrnCode byte) []byte {
 func addTestSubscriber(c *Client, topic string) {
 	subscriberTable = &Subscribers{Subscribers: make(map[string][]*Client)}
 	subscriberTable.Subscribers[topic] = []*Client{c}
-	c.Topics = append(c.Topics, topic)
+	c.Subs = append(c.Subs, &Subscription{Topic: topic})
 }
 
 func newTestPublishRequest(pp mqttlib.PublishPacket) (*mqttlib.FixedHeader, []byte) {

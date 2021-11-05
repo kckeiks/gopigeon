@@ -19,11 +19,17 @@ var clientIDSet = &idSet{set: make(map[string]struct{})}
 
 //
 type Client struct {
-	Conn       net.Conn
-	ID         string
-	Topics     []string // might be able to remove this
+	Conn net.Conn
+	ID   string
+	Subs []*Subscription // might be able to remove this
+	//Subs  []Subscription
 	KeepAlive  int
 	MsgManager *MessageManager
+}
+
+type Subscription struct {
+	QoS   uint
+	Topic string
 }
 
 type MessageManager struct {
