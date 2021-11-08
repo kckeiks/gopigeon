@@ -19,12 +19,38 @@ func handlePublish(c *Client, fh *mqttlib.FixedHeader) error {
 	if err != nil {
 		return err
 	}
+	// TODO: send puback or pubrec dependeing on QoS
+	pktId := p.PacketID
+	switch p.QoS {
+	case 0:
+		break
+	case 1:
+		// send puback
+		err = writeMsg(c, mqttlib.NewEncodedPuback(pktId))
+		if err != nil {
+			return err
+		}
+	case 2:
+		// send pubrec
+		err = writeMsg(c, mqttlib.NewEncodedPubrec(pktId))
+		if err != nil {
+			return err
+		}
+	default:
+		return mqttlib.InvalidQoSValError
+
+	}
+	go publish(p)
+	return nil
+}
+
+func publish(p *mqttlib.PublishPacket) {
 	clients, err := subscriberTable.GetSubscribers(p.Topic)
+	// TODO: log error
 	if err != nil {
-		return err
+		return
 	}
 	// TODO: if one write op goes wrong, it should not stop us from trying the rest
-	// TODO: send puback or pubrec dependeing on QoS
 	// TODO: this loop below should be handled in a goroutine so that it doesnt block us from
 	// TODO: reading responses for this client (connection)
 	for _, c := range clients {
@@ -45,5 +71,4 @@ func handlePublish(c *Client, fh *mqttlib.FixedHeader) error {
 			fmt.Printf("publishing error: %s\n", err.Error())
 		}
 	}
-	return nil
 }

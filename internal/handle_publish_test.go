@@ -1,11 +1,11 @@
 package internal
 
 import (
+	"github.com/kckeiks/gopigeon/mqttlib"
 	"io"
 	"reflect"
 	"testing"
-
-	"github.com/kckeiks/gopigeon/mqttlib"
+	"time"
 )
 
 func TestHandlePublish(t *testing.T) {
@@ -27,7 +27,20 @@ func TestHandlePublish(t *testing.T) {
 	}
 	// Then: we published the message to the subscriber
 	msgPublished, err := io.ReadAll(subscriber.Conn)
+	if err != nil {
+		t.Fatalf("unexpected error")
+	}
+	// msgs are published asynchronously so we might not have the msg yet
+	tryCount := 2
+	for tryCount > 0 && len(msgPublished) == 0 {
+		time.Sleep(time.Second)
+		msgPublished, err  = io.ReadAll(subscriber.Conn)
+		if err != nil {
+			t.Fatalf("unexpected error")
+		}
+		tryCount--
+	}
 	if !reflect.DeepEqual(msgPublished, pp) {
-		t.Fatalf("Publish packet sent %+v but expected %+v.", msgPublished, pp)
+		t.Fatalf("publish packet sent %+v but expected %+v.", msgPublished, pp)
 	}
 }
