@@ -19,7 +19,6 @@ func handlePublish(c *Client, fh *mqttlib.FixedHeader) error {
 	if err != nil {
 		return err
 	}
-	// TODO: send puback or pubrec dependeing on QoS
 	pktId := p.PacketID
 	switch p.QoS {
 	case 0:
@@ -50,9 +49,6 @@ func publish(p *mqttlib.PublishPacket) {
 	if err != nil {
 		return
 	}
-	// TODO: if one write op goes wrong, it should not stop us from trying the rest
-	// TODO: this loop below should be handled in a goroutine so that it doesnt block us from
-	// TODO: reading responses for this client (connection)
 	for _, c := range clients {
 		qos := p.QoS
 		s := c.findSubscription(p.Topic)
